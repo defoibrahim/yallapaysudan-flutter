@@ -1,0 +1,6 @@
+{
+  "clientReferenceId": "order-123",
+  "paymentReferenceId": "yp-ref-456",
+  "status": "SUCCESSFUL",
+  "timestamp": 1719057920000
+}

@@ -1,0 +1,7 @@
+{
+  "responseCode": "0",
+  "responseMessage": "Success",
+  "currentDate": "2025-06-22",
+  "currentTime": "13:25:20",
+  "paymentUrl": "https://gateway.yallapaysudan.com/checkout/web/test-id"
+}
