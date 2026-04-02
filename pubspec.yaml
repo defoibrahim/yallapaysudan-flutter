@@ -1,7 +1,9 @@
 name: yalla_pay_sudan
 description: "Flutter SDK for YallaPaySudan payment gateway. Supports one-time payments, subscriptions, webhook verification, and in-app WebView checkout."
 version: 1.0.0
-homepage: https://yallapaysudan.com
+homepage: https://github.com/defoibrahim/yallapaysudan-flutter
+repository: https://github.com/defoibrahim/yallapaysudan-flutter
+issue_tracker: https://github.com/defoibrahim/yallapaysudan-flutter/issues
 topics:
   - payment
   - payment-gateway

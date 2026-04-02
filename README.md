@@ -14,7 +14,7 @@ Flutter SDK for the [YallaPaySudan](https://yallapaysudan.com) payment gateway. 
 
 | Main Screen | Checkout | Payment Success | Result |
 | :-: | :-: | :-: | :-: |
-| ![Main](screenshots/1_main_dark.png) | ![Checkout](screenshots/2_checkout.png) | ![Success](screenshots/3_payment_succ.png) | ![Result](screenshots/4_payment_result.png) |
+| ![Main](https://raw.githubusercontent.com/defoibrahim/yallapaysudan-flutter/main/screenshots/1_main_dark.png) | ![Checkout](https://raw.githubusercontent.com/defoibrahim/yallapaysudan-flutter/main/screenshots/2_checkout.png) | ![Success](https://raw.githubusercontent.com/defoibrahim/yallapaysudan-flutter/main/screenshots/3_payment_succ.png) | ![Result](https://raw.githubusercontent.com/defoibrahim/yallapaysudan-flutter/main/screenshots/4_payment_result.png) |
 
 ## Getting Started
 
