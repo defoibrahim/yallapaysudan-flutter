@@ -11,4 +11,6 @@ abstract final class ApiConstants {
 
   static const String generateSubscriptionPaymentLink =
       '/gateway/generateSubscriptionPaymentLink';
+
+  static const String getPaymentStatus = '/gateway/getPaymentStatus';
 }

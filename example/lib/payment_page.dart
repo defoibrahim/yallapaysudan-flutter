@@ -22,9 +22,8 @@ class _PaymentPageState extends State<PaymentPage> {
   void initState() {
     super.initState();
     _client = YallaPayClient(
-      YallaPayConfig(
+      YallaPayConfig.sandbox(
         apiKey: dotenv.env['YALLAPAY_API_KEY']!,
-        baseUrl: ApiConstants.sandboxBaseUrl,
         enableLogging: true,
       ),
     );
@@ -111,6 +110,10 @@ class _PaymentPageState extends State<PaymentPage> {
         _showSnackBar('$label failed.', type: _SnackType.error);
       case PaymentStatus.cancelled:
         _showSnackBar('$label cancelled.');
+      case PaymentStatus.revoked:
+        _showSnackBar('$label revoked.', type: _SnackType.error);
+      case PaymentStatus.expired:
+        _showSnackBar('$label expired.', type: _SnackType.error);
       case null:
         _showSnackBar('Checkout dismissed.');
     }

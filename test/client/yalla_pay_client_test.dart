@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:yalla_pay_sudan/src/api/api_constants.dart';
 import 'package:yalla_pay_sudan/yalla_pay_sudan.dart';
 
 class MockDio extends Mock implements Dio {}

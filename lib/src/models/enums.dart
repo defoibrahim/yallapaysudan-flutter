@@ -19,17 +19,21 @@ enum SubscriptionInterval {
       };
 }
 
-/// Payment status returned by webhooks.
+/// Payment status returned by webhooks and status checks.
 enum PaymentStatus {
   successful,
   failed,
-  cancelled;
+  cancelled,
+  revoked,
+  expired;
 
   static PaymentStatus fromString(String value) =>
       switch (value.toUpperCase()) {
         'SUCCESSFUL' => PaymentStatus.successful,
         'FAILED' => PaymentStatus.failed,
         'CANCELLED' => PaymentStatus.cancelled,
+        'REVOKED' => PaymentStatus.revoked,
+        'EXPIRED' => PaymentStatus.expired,
         _ => throw ArgumentError('Unknown payment status: $value'),
       };
 }

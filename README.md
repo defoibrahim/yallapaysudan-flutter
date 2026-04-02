@@ -49,10 +49,21 @@ Go to the [YallaPaySudan Dashboard](https://dashboard.yallapaysudan.com) > **Dev
 ```dart
 import 'package:yalla_pay_sudan/yalla_pay_sudan.dart';
 
+// Sandbox (testing)
+final client = YallaPayClient(
+  YallaPayConfig.sandbox(apiKey: 'your-test-token'),
+);
+
+// Production (live)
+final client = YallaPayClient(
+  YallaPayConfig.live(apiKey: 'your-live-token'),
+);
+
+// Or manual configuration
 final client = YallaPayClient(
   YallaPayConfig(
     apiKey: 'your-auth-token',
-    baseUrl: ApiConstants.sandboxBaseUrl,  // or omit for production
+    baseUrl: ApiConstants.sandboxBaseUrl,
   ),
 );
 ```
@@ -145,6 +156,23 @@ YallaPayCheckoutWebView(
     // Handle result
   },
 )
+```
+
+### Check Payment Status
+
+Check the status of a payment without relying on webhooks or redirects:
+
+```dart
+final status = await client.getPaymentStatus(
+  clientReferenceId: 'order-123',
+  transactionDate: '2025-12-05',  // YYYY-MM-DD
+);
+
+if (status.isSuccessful) {
+  print('Paid ${status.amount} SDG — ref: ${status.paymentReferenceId}');
+} else {
+  print('Status: ${status.status}'); // failed, cancelled, revoked, expired
+}
 ```
 
 ### Webhook Verification

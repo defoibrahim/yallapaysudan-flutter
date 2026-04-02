@@ -36,6 +36,41 @@ class YallaPayConfig extends Equatable {
     this.enableLogging = false,
   });
 
+  /// Creates a config for the **sandbox** (test) environment.
+  const YallaPayConfig.sandbox({
+    required String apiKey,
+    String? webhookSecret,
+    Duration webhookTimestampTolerance = const Duration(minutes: 5),
+    Duration connectTimeout = const Duration(seconds: 30),
+    Duration receiveTimeout = const Duration(seconds: 30),
+    bool enableLogging = false,
+  }) : this(
+          apiKey: apiKey,
+          baseUrl: ApiConstants.sandboxBaseUrl,
+          webhookSecret: webhookSecret,
+          webhookTimestampTolerance: webhookTimestampTolerance,
+          connectTimeout: connectTimeout,
+          receiveTimeout: receiveTimeout,
+          enableLogging: enableLogging,
+        );
+
+  /// Creates a config for the **production** (live) environment.
+  const YallaPayConfig.live({
+    required String apiKey,
+    String? webhookSecret,
+    Duration webhookTimestampTolerance = const Duration(minutes: 5),
+    Duration connectTimeout = const Duration(seconds: 30),
+    Duration receiveTimeout = const Duration(seconds: 30),
+    bool enableLogging = false,
+  }) : this(
+          apiKey: apiKey,
+          webhookSecret: webhookSecret,
+          webhookTimestampTolerance: webhookTimestampTolerance,
+          connectTimeout: connectTimeout,
+          receiveTimeout: receiveTimeout,
+          enableLogging: enableLogging,
+        );
+
   @override
   List<Object?> get props => [
         apiKey,

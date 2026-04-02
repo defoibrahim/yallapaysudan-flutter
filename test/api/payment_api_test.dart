@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:yalla_pay_sudan/src/api/api_constants.dart';
 import 'package:yalla_pay_sudan/src/api/payment_api.dart';
 import 'package:yalla_pay_sudan/yalla_pay_sudan.dart';
 
@@ -172,6 +171,70 @@ void main() {
 
         expect(result.isSuccess, true);
         expect(result.paymentUrl, contains('sub-id'));
+      });
+    });
+
+    group('getPaymentStatus', () {
+      test('returns PaymentStatusResponse on success', () async {
+        final responseData = {
+          'clientReferenceId': 'order-123',
+          'paymentReferenceId': 'yp-ref-456',
+          'status': 'SUCCESSFUL',
+          'amount': 5000,
+          'paymentDate': '2025-12-05',
+          'paymentTime': '13:15:02',
+        };
+
+        when(() => mockDio.post<Map<String, dynamic>>(
+              ApiConstants.getPaymentStatus,
+              data: any(named: 'data'),
+            )).thenAnswer((_) async => Response(
+              data: responseData,
+              statusCode: 200,
+              requestOptions:
+                  RequestOptions(path: ApiConstants.getPaymentStatus),
+            ));
+
+        final result = await api.getPaymentStatus(
+          clientReferenceId: 'order-123',
+          transactionDate: '2025-12-05',
+        );
+
+        expect(result.isSuccessful, true);
+        expect(result.clientReferenceId, 'order-123');
+        expect(result.paymentReferenceId, 'yp-ref-456');
+        expect(result.amount, 5000);
+        expect(result.paymentDate, '2025-12-05');
+        expect(result.paymentTime, '13:15:02');
+      });
+
+      test('returns expired status', () async {
+        final responseData = {
+          'clientReferenceId': 'order-789',
+          'paymentReferenceId': 'yp-ref-012',
+          'status': 'EXPIRED',
+          'amount': 3000,
+          'paymentDate': '',
+          'paymentTime': '',
+        };
+
+        when(() => mockDio.post<Map<String, dynamic>>(
+              ApiConstants.getPaymentStatus,
+              data: any(named: 'data'),
+            )).thenAnswer((_) async => Response(
+              data: responseData,
+              statusCode: 200,
+              requestOptions:
+                  RequestOptions(path: ApiConstants.getPaymentStatus),
+            ));
+
+        final result = await api.getPaymentStatus(
+          clientReferenceId: 'order-789',
+          transactionDate: '2025-12-05',
+        );
+
+        expect(result.status, PaymentStatus.expired);
+        expect(result.isSuccessful, false);
       });
     });
   });

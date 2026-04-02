@@ -7,6 +7,7 @@ export 'src/client/yalla_pay_config.dart';
 export 'src/models/enums.dart';
 export 'src/models/payment_request.dart';
 export 'src/models/payment_response.dart';
+export 'src/models/payment_status_response.dart';
 export 'src/models/subscription_configuration.dart';
 export 'src/models/subscription_request.dart';
 export 'src/models/webhook_payload.dart';

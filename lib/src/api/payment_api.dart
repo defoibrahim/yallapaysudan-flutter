@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../exceptions/yalla_pay_exception.dart';
 import '../models/payment_request.dart';
 import '../models/payment_response.dart';
+import '../models/payment_status_response.dart';
 import '../models/subscription_request.dart';
 import 'api_constants.dart';
 
@@ -14,20 +15,52 @@ class PaymentApi {
 
   /// Generates a one-time payment link.
   Future<PaymentResponse> generatePaymentLink(PaymentRequest request) async {
-    return _post(ApiConstants.generatePaymentLink, request.toJson());
+    final data = await _post(ApiConstants.generatePaymentLink, request.toJson());
+    return _parsePaymentResponse(data);
   }
 
   /// Generates a subscription payment link.
   Future<PaymentResponse> generateSubscriptionLink(
     SubscriptionRequest request,
   ) async {
-    return _post(
+    final data = await _post(
       ApiConstants.generateSubscriptionPaymentLink,
       request.toJson(),
     );
+    return _parsePaymentResponse(data);
   }
 
-  Future<PaymentResponse> _post(
+  /// Checks the status of a payment.
+  Future<PaymentStatusResponse> getPaymentStatus({
+    required String clientReferenceId,
+    required String transactionDate,
+  }) async {
+    final data = await _post(
+      ApiConstants.getPaymentStatus,
+      {
+        'clientReferenceId': clientReferenceId,
+        'transactionDate': transactionDate,
+      },
+    );
+    return PaymentStatusResponse.fromJson(data);
+  }
+
+  /// Parses a payment response and throws if the API returned an error.
+  PaymentResponse _parsePaymentResponse(Map<String, dynamic> data) {
+    final response = PaymentResponse.fromJson(data);
+    if (!response.isSuccess) {
+      throw PaymentException(
+        message: response.responseMessage,
+        responseCode: response.responseCode,
+        rawResponse: data,
+      );
+    }
+    return response;
+  }
+
+  /// Makes a POST request and returns the parsed JSON body.
+  /// Handles Dio errors and maps them to package exceptions.
+  Future<Map<String, dynamic>> _post(
     String endpoint,
     Map<String, dynamic> payload,
   ) async {
@@ -45,44 +78,38 @@ class PaymentApi {
         );
       }
 
-      final paymentResponse = PaymentResponse.fromJson(data);
-
-      if (!paymentResponse.isSuccess) {
-        throw PaymentException(
-          message: paymentResponse.responseMessage,
-          responseCode: paymentResponse.responseCode,
-          rawResponse: data,
-        );
-      }
-
-      return paymentResponse;
+      return data;
     } on DioException catch (e) {
-      // If the server returned an HTTP error with a JSON body, extract it.
-      final responseData = e.response?.data;
-      if (responseData is Map<String, dynamic>) {
-        final code =
-            responseData['responseCode'] as String? ?? '${e.response?.statusCode}';
-        final message = responseData['responseMessage'] as String? ??
-            'HTTP ${e.response?.statusCode} error from YallaPaySudan.';
-        throw PaymentException(
-          message: message,
-          responseCode: code,
-          rawResponse: responseData,
-        );
-      }
+      throw _mapDioException(e);
+    }
+  }
 
-      final statusCode = e.response?.statusCode;
-      if (statusCode != null) {
-        throw PaymentException(
-          message: 'HTTP $statusCode error from YallaPaySudan.',
-          responseCode: '$statusCode',
-        );
-      }
-
-      throw NetworkException(
-        message: 'HTTP request to YallaPaySudan failed: ${e.message}',
-        dioException: e,
+  /// Maps a [DioException] to the appropriate package exception.
+  Never _mapDioException(DioException e) {
+    final responseData = e.response?.data;
+    if (responseData is Map<String, dynamic>) {
+      final code =
+          responseData['responseCode'] as String? ?? '${e.response?.statusCode}';
+      final message = responseData['responseMessage'] as String? ??
+          'HTTP ${e.response?.statusCode} error from YallaPaySudan.';
+      throw PaymentException(
+        message: message,
+        responseCode: code,
+        rawResponse: responseData,
       );
     }
+
+    final statusCode = e.response?.statusCode;
+    if (statusCode != null) {
+      throw PaymentException(
+        message: 'HTTP $statusCode error from YallaPaySudan.',
+        responseCode: '$statusCode',
+      );
+    }
+
+    throw NetworkException(
+      message: 'HTTP request to YallaPaySudan failed: ${e.message}',
+      dioException: e,
+    );
   }
 }

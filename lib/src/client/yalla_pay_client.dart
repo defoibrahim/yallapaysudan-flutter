@@ -6,6 +6,7 @@ import '../interceptors/auth_interceptor.dart';
 import '../interceptors/logging_interceptor.dart';
 import '../models/payment_request.dart';
 import '../models/payment_response.dart';
+import '../models/payment_status_response.dart';
 import '../models/subscription_request.dart';
 import '../models/webhook_payload.dart';
 import '../webhook/webhook_verifier.dart';
@@ -75,6 +76,23 @@ class YallaPayClient {
     return response.copyWith(
       successRedirectUrl: request.paymentSuccessfulRedirectUrl,
       failedRedirectUrl: request.paymentFailedRedirectUrl,
+    );
+  }
+
+  /// Checks the status of a payment.
+  ///
+  /// [clientReferenceId] is the unique ID you passed when creating the payment.
+  /// [transactionDate] is the date the payment was initiated (YYYY-MM-DD).
+  ///
+  /// Throws [PaymentException] if the API returns an error.
+  /// Throws [NetworkException] on connection failures.
+  Future<PaymentStatusResponse> getPaymentStatus({
+    required String clientReferenceId,
+    required String transactionDate,
+  }) async {
+    return _paymentApi.getPaymentStatus(
+      clientReferenceId: clientReferenceId,
+      transactionDate: transactionDate,
     );
   }
 
