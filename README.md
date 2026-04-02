@@ -10,6 +10,12 @@ Flutter SDK for the [YallaPaySudan](https://yallapaysudan.com) payment gateway. 
 - **Webhook verification** -- HMAC-SHA256 signature verification with replay attack protection
 - **Type-safe** -- Immutable models, sealed exceptions, and exhaustive error handling
 
+## Screenshots
+
+| Main Screen | Checkout | Payment Success | Result |
+| :-: | :-: | :-: | :-: |
+| ![Main](screenshots/1_main_dark.png) | ![Checkout](screenshots/2_checkout.png) | ![Success](screenshots/3_payment_succ.png) | ![Result](screenshots/4_payment_result.png) |
+
 ## Getting Started
 
 ### 1. Install
@@ -105,17 +111,17 @@ final result = await YallaPayCheckoutWebView.show(
 );
 
 switch (result?.status) {
-  case CheckoutStatus.success:
+  case PaymentStatus.successful:
     // Payment completed
-  case CheckoutStatus.failed:
+  case PaymentStatus.failed:
     // Payment failed
-  case CheckoutStatus.cancelled:
+  case PaymentStatus.cancelled:
   case null:
     // User dismissed the checkout
 }
 ```
 
-The WebView intercepts navigation to your success/failure redirect URLs and closes automatically. If the user presses back, the result is `CheckoutStatus.cancelled`.
+The WebView intercepts navigation to your success/failure redirect URLs and closes automatically. If the user presses back, the result is `PaymentStatus.cancelled`.
 
 You can also pass URLs manually if needed:
 

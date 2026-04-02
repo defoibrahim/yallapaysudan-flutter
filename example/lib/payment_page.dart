@@ -24,7 +24,7 @@ class _PaymentPageState extends State<PaymentPage> {
     _client = YallaPayClient(
       YallaPayConfig(
         apiKey: dotenv.env['YALLAPAY_API_KEY']!,
-        baseUrl: dotenv.env['YALLAPAY_BASE_URL']!,
+        baseUrl: ApiConstants.sandboxBaseUrl,
         enableLogging: true,
       ),
     );
@@ -105,11 +105,11 @@ class _PaymentPageState extends State<PaymentPage> {
     final label = isSubscription ? 'Subscription' : 'Payment';
 
     switch (result?.status) {
-      case CheckoutStatus.success:
+      case PaymentStatus.successful:
         _showSnackBar('$label successful!', type: _SnackType.success);
-      case CheckoutStatus.failed:
+      case PaymentStatus.failed:
         _showSnackBar('$label failed.', type: _SnackType.error);
-      case CheckoutStatus.cancelled:
+      case PaymentStatus.cancelled:
         _showSnackBar('$label cancelled.');
       case null:
         _showSnackBar('Checkout dismissed.');

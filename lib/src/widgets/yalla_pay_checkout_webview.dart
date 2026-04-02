@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../models/checkout_result.dart';
+import '../models/enums.dart';
 import '../models/payment_response.dart';
-import 'checkout_result.dart';
 
 /// A WebView widget for in-app YallaPaySudan checkout.
 ///
@@ -131,7 +132,7 @@ class _YallaPayCheckoutWebViewState extends State<YallaPayCheckoutWebView> {
     if (widget.successUrlPattern != null &&
         url.contains(widget.successUrlPattern!)) {
       _fireResult(CheckoutResult(
-        status: CheckoutStatus.success,
+        status: PaymentStatus.successful,
         redirectUrl: url,
       ));
       return NavigationDecision.prevent;
@@ -140,7 +141,7 @@ class _YallaPayCheckoutWebViewState extends State<YallaPayCheckoutWebView> {
     if (widget.failedUrlPattern != null &&
         url.contains(widget.failedUrlPattern!)) {
       _fireResult(CheckoutResult(
-        status: CheckoutStatus.failed,
+        status: PaymentStatus.failed,
         redirectUrl: url,
       ));
       return NavigationDecision.prevent;
@@ -194,7 +195,7 @@ class _CheckoutPage extends StatelessWidget {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) {
           Navigator.of(context).pop(
-            const CheckoutResult(status: CheckoutStatus.cancelled),
+            const CheckoutResult(status: PaymentStatus.cancelled),
           );
         }
       },
@@ -204,7 +205,7 @@ class _CheckoutPage extends StatelessWidget {
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(
-              const CheckoutResult(status: CheckoutStatus.cancelled),
+              const CheckoutResult(status: PaymentStatus.cancelled),
             ),
           ),
         ),

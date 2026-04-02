@@ -1,4 +1,5 @@
 // Client
+export 'src/api/api_constants.dart';
 export 'src/client/yalla_pay_client.dart';
 export 'src/client/yalla_pay_config.dart';
 
@@ -17,5 +18,5 @@ export 'src/exceptions/yalla_pay_exception.dart';
 export 'src/webhook/webhook_verifier.dart';
 
 // Widgets
-export 'src/widgets/checkout_result.dart';
+export 'src/models/checkout_result.dart';
 export 'src/widgets/yalla_pay_checkout_webview.dart';
