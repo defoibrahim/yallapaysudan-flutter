@@ -81,10 +81,8 @@ class YallaPayCheckoutWebView extends StatefulWidget {
       MaterialPageRoute(
         builder: (_) => _CheckoutPage(
           paymentUrl: url!,
-          successUrlPattern:
-              successUrlPattern ?? response?.successRedirectUrl,
-          failedUrlPattern:
-              failedUrlPattern ?? response?.failedRedirectUrl,
+          successUrlPattern: successUrlPattern ?? response?.successRedirectUrl,
+          failedUrlPattern: failedUrlPattern ?? response?.failedRedirectUrl,
           title: title,
         ),
       ),
@@ -131,19 +129,17 @@ class _YallaPayCheckoutWebViewState extends State<YallaPayCheckoutWebView> {
 
     if (widget.successUrlPattern != null &&
         url.contains(widget.successUrlPattern!)) {
-      _fireResult(CheckoutResult(
-        status: PaymentStatus.successful,
-        redirectUrl: url,
-      ));
+      _fireResult(
+        CheckoutResult(status: PaymentStatus.successful, redirectUrl: url),
+      );
       return NavigationDecision.prevent;
     }
 
     if (widget.failedUrlPattern != null &&
         url.contains(widget.failedUrlPattern!)) {
-      _fireResult(CheckoutResult(
-        status: PaymentStatus.failed,
-        redirectUrl: url,
-      ));
+      _fireResult(
+        CheckoutResult(status: PaymentStatus.failed, redirectUrl: url),
+      );
       return NavigationDecision.prevent;
     }
 
@@ -194,9 +190,9 @@ class _CheckoutPage extends StatelessWidget {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) {
-          Navigator.of(context).pop(
-            const CheckoutResult(status: PaymentStatus.cancelled),
-          );
+          Navigator.of(
+            context,
+          ).pop(const CheckoutResult(status: PaymentStatus.cancelled));
         }
       },
       child: Scaffold(
@@ -204,9 +200,9 @@ class _CheckoutPage extends StatelessWidget {
           title: Text(title),
           leading: IconButton(
             icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(
-              const CheckoutResult(status: PaymentStatus.cancelled),
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).pop(const CheckoutResult(status: PaymentStatus.cancelled)),
           ),
         ),
         body: YallaPayCheckoutWebView(

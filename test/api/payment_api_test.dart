@@ -31,15 +31,20 @@ void main() {
               'https://gateway.yallapaysudan.com/checkout/web/test-id',
         };
 
-        when(() => mockDio.post<Map<String, dynamic>>(
-              ApiConstants.generatePaymentLink,
-              data: any(named: 'data'),
-            )).thenAnswer((_) async => Response(
-              data: responseData,
-              statusCode: 200,
-              requestOptions:
-                  RequestOptions(path: ApiConstants.generatePaymentLink),
-            ));
+        when(
+          () => mockDio.post<Map<String, dynamic>>(
+            ApiConstants.generatePaymentLink,
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            data: responseData,
+            statusCode: 200,
+            requestOptions: RequestOptions(
+              path: ApiConstants.generatePaymentLink,
+            ),
+          ),
+        );
 
         const request = PaymentRequest(
           amount: 5000,
@@ -62,15 +67,20 @@ void main() {
           'paymentUrl': '',
         };
 
-        when(() => mockDio.post<Map<String, dynamic>>(
-              ApiConstants.generatePaymentLink,
-              data: any(named: 'data'),
-            )).thenAnswer((_) async => Response(
-              data: responseData,
-              statusCode: 200,
-              requestOptions:
-                  RequestOptions(path: ApiConstants.generatePaymentLink),
-            ));
+        when(
+          () => mockDio.post<Map<String, dynamic>>(
+            ApiConstants.generatePaymentLink,
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            data: responseData,
+            statusCode: 200,
+            requestOptions: RequestOptions(
+              path: ApiConstants.generatePaymentLink,
+            ),
+          ),
+        );
 
         const request = PaymentRequest(
           amount: 5000,
@@ -79,23 +89,30 @@ void main() {
 
         expect(
           () => api.generatePaymentLink(request),
-          throwsA(isA<PaymentException>().having(
-            (e) => e.responseCode,
-            'responseCode',
-            '1',
-          )),
+          throwsA(
+            isA<PaymentException>().having(
+              (e) => e.responseCode,
+              'responseCode',
+              '1',
+            ),
+          ),
         );
       });
 
       test('throws NetworkException on DioException', () async {
-        when(() => mockDio.post<Map<String, dynamic>>(
-              ApiConstants.generatePaymentLink,
-              data: any(named: 'data'),
-            )).thenThrow(DioException(
-              requestOptions:
-                  RequestOptions(path: ApiConstants.generatePaymentLink),
-              message: 'Connection timeout',
-            ));
+        when(
+          () => mockDio.post<Map<String, dynamic>>(
+            ApiConstants.generatePaymentLink,
+            data: any(named: 'data'),
+          ),
+        ).thenThrow(
+          DioException(
+            requestOptions: RequestOptions(
+              path: ApiConstants.generatePaymentLink,
+            ),
+            message: 'Connection timeout',
+          ),
+        );
 
         const request = PaymentRequest(
           amount: 5000,
@@ -104,24 +121,31 @@ void main() {
 
         expect(
           () => api.generatePaymentLink(request),
-          throwsA(isA<NetworkException>().having(
-            (e) => e.message,
-            'message',
-            contains('Connection timeout'),
-          )),
+          throwsA(
+            isA<NetworkException>().having(
+              (e) => e.message,
+              'message',
+              contains('Connection timeout'),
+            ),
+          ),
         );
       });
 
       test('throws PaymentException on null response body', () async {
-        when(() => mockDio.post<Map<String, dynamic>>(
-              ApiConstants.generatePaymentLink,
-              data: any(named: 'data'),
-            )).thenAnswer((_) async => Response(
-              data: null,
-              statusCode: 200,
-              requestOptions:
-                  RequestOptions(path: ApiConstants.generatePaymentLink),
-            ));
+        when(
+          () => mockDio.post<Map<String, dynamic>>(
+            ApiConstants.generatePaymentLink,
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            data: null,
+            statusCode: 200,
+            requestOptions: RequestOptions(
+              path: ApiConstants.generatePaymentLink,
+            ),
+          ),
+        );
 
         const request = PaymentRequest(
           amount: 5000,
@@ -142,20 +166,23 @@ void main() {
           'responseMessage': 'Success',
           'currentDate': '2025-06-22',
           'currentTime': '13:25:20',
-          'paymentUrl':
-              'https://gateway.yallapaysudan.com/checkout/web/sub-id',
+          'paymentUrl': 'https://gateway.yallapaysudan.com/checkout/web/sub-id',
         };
 
-        when(() => mockDio.post<Map<String, dynamic>>(
-              ApiConstants.generateSubscriptionPaymentLink,
-              data: any(named: 'data'),
-            )).thenAnswer((_) async => Response(
-              data: responseData,
-              statusCode: 200,
-              requestOptions: RequestOptions(
-                path: ApiConstants.generateSubscriptionPaymentLink,
-              ),
-            ));
+        when(
+          () => mockDio.post<Map<String, dynamic>>(
+            ApiConstants.generateSubscriptionPaymentLink,
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            data: responseData,
+            statusCode: 200,
+            requestOptions: RequestOptions(
+              path: ApiConstants.generateSubscriptionPaymentLink,
+            ),
+          ),
+        );
 
         const request = SubscriptionRequest(
           amount: 5000,
@@ -185,15 +212,18 @@ void main() {
           'paymentTime': '13:15:02',
         };
 
-        when(() => mockDio.post<Map<String, dynamic>>(
-              ApiConstants.getPaymentStatus,
-              data: any(named: 'data'),
-            )).thenAnswer((_) async => Response(
-              data: responseData,
-              statusCode: 200,
-              requestOptions:
-                  RequestOptions(path: ApiConstants.getPaymentStatus),
-            ));
+        when(
+          () => mockDio.post<Map<String, dynamic>>(
+            ApiConstants.getPaymentStatus,
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            data: responseData,
+            statusCode: 200,
+            requestOptions: RequestOptions(path: ApiConstants.getPaymentStatus),
+          ),
+        );
 
         final result = await api.getPaymentStatus(
           clientReferenceId: 'order-123',
@@ -218,15 +248,18 @@ void main() {
           'paymentTime': '',
         };
 
-        when(() => mockDio.post<Map<String, dynamic>>(
-              ApiConstants.getPaymentStatus,
-              data: any(named: 'data'),
-            )).thenAnswer((_) async => Response(
-              data: responseData,
-              statusCode: 200,
-              requestOptions:
-                  RequestOptions(path: ApiConstants.getPaymentStatus),
-            ));
+        when(
+          () => mockDio.post<Map<String, dynamic>>(
+            ApiConstants.getPaymentStatus,
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            data: responseData,
+            statusCode: 200,
+            requestOptions: RequestOptions(path: ApiConstants.getPaymentStatus),
+          ),
+        );
 
         final result = await api.getPaymentStatus(
           clientReferenceId: 'order-789',

@@ -71,10 +71,10 @@ class PaymentResponse extends Equatable {
 
   @override
   List<Object?> get props => [
-        responseCode,
-        responseMessage,
-        currentDate,
-        currentTime,
-        paymentUrl,
-      ];
+    responseCode,
+    responseMessage,
+    currentDate,
+    currentTime,
+    paymentUrl,
+  ];
 }

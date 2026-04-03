@@ -58,11 +58,11 @@ class PaymentRequest extends Equatable {
 
   @override
   List<Object?> get props => [
-        amount,
-        clientReferenceId,
-        description,
-        paymentSuccessfulRedirectUrl,
-        paymentFailedRedirectUrl,
-        commissionPaidByCustomer,
-      ];
+    amount,
+    clientReferenceId,
+    description,
+    paymentSuccessfulRedirectUrl,
+    paymentFailedRedirectUrl,
+    commissionPaidByCustomer,
+  ];
 }

@@ -5,10 +5,7 @@ import 'package:yalla_pay_sudan/yalla_pay_sudan.dart';
 class PaymentPage extends StatefulWidget {
   final VoidCallback onToggleTheme;
 
-  const PaymentPage({
-    super.key,
-    required this.onToggleTheme,
-  });
+  const PaymentPage({super.key, required this.onToggleTheme});
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -126,20 +123,20 @@ class _PaymentPageState extends State<PaymentPage> {
   void _showSnackBar(String message, {_SnackType type = _SnackType.info}) {
     final (bgColor, fgColor, icon) = switch (type) {
       _SnackType.success => (
-          const Color(0xFFE8F5E9),
-          const Color(0xFF2E7D32),
-          Icons.check_circle_rounded,
-        ),
+        const Color(0xFFE8F5E9),
+        const Color(0xFF2E7D32),
+        Icons.check_circle_rounded,
+      ),
       _SnackType.error => (
-          const Color(0xFFFFEBEE),
-          const Color(0xFFC62828),
-          Icons.error_rounded,
-        ),
+        const Color(0xFFFFEBEE),
+        const Color(0xFFC62828),
+        Icons.error_rounded,
+      ),
       _SnackType.info => (
-          const Color(0xFFFFF8E1),
-          const Color(0xFFF9A825),
-          Icons.warning_rounded,
-        ),
+        const Color(0xFFFFF8E1),
+        const Color(0xFFF9A825),
+        Icons.warning_rounded,
+      ),
     };
 
     ScaffoldMessenger.of(context)
@@ -153,18 +150,16 @@ class _PaymentPageState extends State<PaymentPage> {
               Expanded(
                 child: Text(
                   message,
-                  style: TextStyle(
-                    color: fgColor,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(color: fgColor, fontWeight: FontWeight.w500),
                 ),
               ),
             ],
           ),
           backgroundColor: bgColor,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           margin: const EdgeInsets.all(16),
           elevation: 0,
           duration: const Duration(seconds: 3),
@@ -226,16 +221,16 @@ class _PaymentPageState extends State<PaymentPage> {
             // Header
             Text(
               'YallaPay Sudan',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               'Payment Gateway SDK Demo',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 32),
 
@@ -285,15 +280,18 @@ class _PaymentPageState extends State<PaymentPage> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.science_rounded,
-                          size: 18, color: colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.science_rounded,
+                        size: 18,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Sandbox Mode',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -302,8 +300,8 @@ class _PaymentPageState extends State<PaymentPage> {
                     'This demo uses the YallaPaySudan sandbox '
                     'environment. No real charges will be made.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -332,8 +330,7 @@ class _PaymentPageState extends State<PaymentPage> {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(16),
-        border:
-            outlined ? Border.all(color: colorScheme.outlineVariant) : null,
+        border: outlined ? Border.all(color: colorScheme.outlineVariant) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,17 +352,16 @@ class _PaymentPageState extends State<PaymentPage> {
                   children: [
                     Text(
                       title,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -378,8 +374,8 @@ class _PaymentPageState extends State<PaymentPage> {
               Text(
                 amount,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const Spacer(),
               SizedBox(

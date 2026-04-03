@@ -12,8 +12,7 @@ void main() {
         'responseMessage': 'Success',
         'currentDate': '2025-06-22',
         'currentTime': '13:25:20',
-        'paymentUrl':
-            'https://gateway.yallapaysudan.com/checkout/web/test-id',
+        'paymentUrl': 'https://gateway.yallapaysudan.com/checkout/web/test-id',
       };
 
       final response = PaymentResponse.fromJson(json);
@@ -74,22 +73,13 @@ void main() {
 
   group('PaymentStatus', () {
     test('fromString parses valid statuses', () {
-      expect(
-        PaymentStatus.fromString('SUCCESSFUL'),
-        PaymentStatus.successful,
-      );
+      expect(PaymentStatus.fromString('SUCCESSFUL'), PaymentStatus.successful);
       expect(PaymentStatus.fromString('FAILED'), PaymentStatus.failed);
-      expect(
-        PaymentStatus.fromString('CANCELLED'),
-        PaymentStatus.cancelled,
-      );
+      expect(PaymentStatus.fromString('CANCELLED'), PaymentStatus.cancelled);
     });
 
     test('fromString is case-insensitive', () {
-      expect(
-        PaymentStatus.fromString('successful'),
-        PaymentStatus.successful,
-      );
+      expect(PaymentStatus.fromString('successful'), PaymentStatus.successful);
     });
 
     test('fromString throws on unknown status', () {

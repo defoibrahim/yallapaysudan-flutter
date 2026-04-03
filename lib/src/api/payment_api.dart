@@ -15,7 +15,10 @@ class PaymentApi {
 
   /// Generates a one-time payment link.
   Future<PaymentResponse> generatePaymentLink(PaymentRequest request) async {
-    final data = await _post(ApiConstants.generatePaymentLink, request.toJson());
+    final data = await _post(
+      ApiConstants.generatePaymentLink,
+      request.toJson(),
+    );
     return _parsePaymentResponse(data);
   }
 
@@ -35,13 +38,10 @@ class PaymentApi {
     required String clientReferenceId,
     required String transactionDate,
   }) async {
-    final data = await _post(
-      ApiConstants.getPaymentStatus,
-      {
-        'clientReferenceId': clientReferenceId,
-        'transactionDate': transactionDate,
-      },
-    );
+    final data = await _post(ApiConstants.getPaymentStatus, {
+      'clientReferenceId': clientReferenceId,
+      'transactionDate': transactionDate,
+    });
     return PaymentStatusResponse.fromJson(data);
   }
 
@@ -89,8 +89,10 @@ class PaymentApi {
     final responseData = e.response?.data;
     if (responseData is Map<String, dynamic>) {
       final code =
-          responseData['responseCode'] as String? ?? '${e.response?.statusCode}';
-      final message = responseData['responseMessage'] as String? ??
+          responseData['responseCode'] as String? ??
+          '${e.response?.statusCode}';
+      final message =
+          responseData['responseMessage'] as String? ??
           'HTTP ${e.response?.statusCode} error from YallaPaySudan.';
       throw PaymentException(
         message: message,

@@ -48,10 +48,7 @@ void main() {
     });
 
     test('validate throws on empty clientReferenceId', () {
-      const request = PaymentRequest(
-        amount: 5000,
-        clientReferenceId: '',
-      );
+      const request = PaymentRequest(amount: 5000, clientReferenceId: '');
 
       expect(() => request.validate(), throwsArgumentError);
     });

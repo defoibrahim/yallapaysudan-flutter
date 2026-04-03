@@ -39,8 +39,6 @@ class NetworkException extends YallaPayException {
   /// The underlying Dio exception, if available.
   final DioException? dioException;
 
-  const NetworkException({
-    required String message,
-    this.dioException,
-  }) : super(message);
+  const NetworkException({required String message, this.dioException})
+    : super(message);
 }

@@ -1,3 +1,13 @@
+## 1.0.2
+
+- Refactor PaymentApi: extract `_parsePaymentResponse` and `_mapDioException`
+- Use redirecting constructors for `YallaPayConfig.sandbox`/`.live`
+- Deduplicate `YallaPayClient` constructors via delegation
+- Cache HMAC key in `WebhookVerifier` constructor for better performance
+- Replace `print` with `dart:developer log` in logging interceptor
+- Update `example.dart` with complete payment flow for pub.dev
+- Code quality cleanup and linter fixes
+
 ## 1.0.1
 
 - Add `getPaymentStatus` endpoint with `transactionDate` support

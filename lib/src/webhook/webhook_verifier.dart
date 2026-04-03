@@ -56,11 +56,7 @@ class WebhookVerifier {
     }
   }
 
-  void _verifySignature(
-    String signature,
-    String timestamp,
-    String rawBody,
-  ) {
+  void _verifySignature(String signature, String timestamp, String rawBody) {
     final message = utf8.encode('$timestamp.$rawBody');
     final digest = _hmac.convert(message);
     final computed = digest.toString();

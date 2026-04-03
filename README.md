@@ -22,7 +22,7 @@ Flutter SDK for the [YallaPaySudan](https://yallapaysudan.com) payment gateway. 
 
 ```yaml
 dependencies:
-  yalla_pay_sudan: ^1.0.0
+  yalla_pay_sudan: ^1.0.2
 ```
 
 ```bash

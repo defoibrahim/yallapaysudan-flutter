@@ -5,10 +5,10 @@ enum SubscriptionInterval {
   year;
 
   String toApiValue() => switch (this) {
-        SubscriptionInterval.day => 'DAY',
-        SubscriptionInterval.month => 'MONTH',
-        SubscriptionInterval.year => 'YEAR',
-      };
+    SubscriptionInterval.day => 'DAY',
+    SubscriptionInterval.month => 'MONTH',
+    SubscriptionInterval.year => 'YEAR',
+  };
 
   static SubscriptionInterval fromString(String value) =>
       switch (value.toUpperCase()) {

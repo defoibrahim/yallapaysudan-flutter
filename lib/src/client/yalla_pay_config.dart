@@ -45,14 +45,14 @@ class YallaPayConfig extends Equatable {
     Duration receiveTimeout = const Duration(seconds: 30),
     bool enableLogging = false,
   }) : this(
-          apiKey: apiKey,
-          baseUrl: ApiConstants.sandboxBaseUrl,
-          webhookSecret: webhookSecret,
-          webhookTimestampTolerance: webhookTimestampTolerance,
-          connectTimeout: connectTimeout,
-          receiveTimeout: receiveTimeout,
-          enableLogging: enableLogging,
-        );
+         apiKey: apiKey,
+         baseUrl: ApiConstants.sandboxBaseUrl,
+         webhookSecret: webhookSecret,
+         webhookTimestampTolerance: webhookTimestampTolerance,
+         connectTimeout: connectTimeout,
+         receiveTimeout: receiveTimeout,
+         enableLogging: enableLogging,
+       );
 
   /// Creates a config for the **production** (live) environment.
   const YallaPayConfig.live({
@@ -63,22 +63,22 @@ class YallaPayConfig extends Equatable {
     Duration receiveTimeout = const Duration(seconds: 30),
     bool enableLogging = false,
   }) : this(
-          apiKey: apiKey,
-          webhookSecret: webhookSecret,
-          webhookTimestampTolerance: webhookTimestampTolerance,
-          connectTimeout: connectTimeout,
-          receiveTimeout: receiveTimeout,
-          enableLogging: enableLogging,
-        );
+         apiKey: apiKey,
+         webhookSecret: webhookSecret,
+         webhookTimestampTolerance: webhookTimestampTolerance,
+         connectTimeout: connectTimeout,
+         receiveTimeout: receiveTimeout,
+         enableLogging: enableLogging,
+       );
 
   @override
   List<Object?> get props => [
-        apiKey,
-        baseUrl,
-        webhookSecret,
-        webhookTimestampTolerance,
-        connectTimeout,
-        receiveTimeout,
-        enableLogging,
-      ];
+    apiKey,
+    baseUrl,
+    webhookSecret,
+    webhookTimestampTolerance,
+    connectTimeout,
+    receiveTimeout,
+    enableLogging,
+  ];
 }

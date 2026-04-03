@@ -20,10 +20,7 @@ void main() {
   setUp(() {
     mockDio = MockDio();
     client = YallaPayClient.withDio(
-      const YallaPayConfig(
-        apiKey: 'test-token',
-        webhookSecret: 'test-secret',
-      ),
+      const YallaPayConfig(apiKey: 'test-token', webhookSecret: 'test-secret'),
       mockDio,
     );
   });
@@ -36,27 +33,31 @@ void main() {
           clientReferenceId: 'order-123',
         );
 
-        expect(
-          () => client.createPayment(request),
-          throwsArgumentError,
-        );
+        expect(() => client.createPayment(request), throwsArgumentError);
 
-        verifyNever(() => mockDio.post<Map<String, dynamic>>(
-              any(),
-              data: any(named: 'data'),
-            ));
+        verifyNever(
+          () => mockDio.post<Map<String, dynamic>>(
+            any(),
+            data: any(named: 'data'),
+          ),
+        );
       });
 
       test('returns PaymentResponse on success', () async {
-        when(() => mockDio.post<Map<String, dynamic>>(
-              ApiConstants.generatePaymentLink,
-              data: any(named: 'data'),
-            )).thenAnswer((_) async => Response(
-              data: successResponse,
-              statusCode: 200,
-              requestOptions:
-                  RequestOptions(path: ApiConstants.generatePaymentLink),
-            ));
+        when(
+          () => mockDio.post<Map<String, dynamic>>(
+            ApiConstants.generatePaymentLink,
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            data: successResponse,
+            statusCode: 200,
+            requestOptions: RequestOptions(
+              path: ApiConstants.generatePaymentLink,
+            ),
+          ),
+        );
 
         const request = PaymentRequest(
           amount: 5000,
@@ -81,23 +82,24 @@ void main() {
           ),
         );
 
-        expect(
-          () => client.createSubscription(request),
-          throwsArgumentError,
-        );
+        expect(() => client.createSubscription(request), throwsArgumentError);
       });
 
       test('returns PaymentResponse on success', () async {
-        when(() => mockDio.post<Map<String, dynamic>>(
-              ApiConstants.generateSubscriptionPaymentLink,
-              data: any(named: 'data'),
-            )).thenAnswer((_) async => Response(
-              data: successResponse,
-              statusCode: 200,
-              requestOptions: RequestOptions(
-                path: ApiConstants.generateSubscriptionPaymentLink,
-              ),
-            ));
+        when(
+          () => mockDio.post<Map<String, dynamic>>(
+            ApiConstants.generateSubscriptionPaymentLink,
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            data: successResponse,
+            statusCode: 200,
+            requestOptions: RequestOptions(
+              path: ApiConstants.generateSubscriptionPaymentLink,
+            ),
+          ),
+        );
 
         const request = SubscriptionRequest(
           amount: 5000,

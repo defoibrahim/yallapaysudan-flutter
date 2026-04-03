@@ -34,18 +34,18 @@ class YallaPayClient {
 
   /// Creates a new [YallaPayClient] with the given [config].
   YallaPayClient(YallaPayConfig config)
-      : this.withDio(config, _createDio(config));
+    : this.withDio(config, _createDio(config));
 
   /// Creates a [YallaPayClient] with a pre-configured [Dio] instance.
   ///
   /// Useful for testing with mocked HTTP clients.
   YallaPayClient.withDio(this.config, this._dio)
-      : _webhookVerifier = config.webhookSecret != null
-            ? WebhookVerifier(
-                secret: config.webhookSecret!,
-                timestampTolerance: config.webhookTimestampTolerance,
-              )
-            : null {
+    : _webhookVerifier = config.webhookSecret != null
+          ? WebhookVerifier(
+              secret: config.webhookSecret!,
+              timestampTolerance: config.webhookTimestampTolerance,
+            )
+          : null {
     _paymentApi = PaymentApi(_dio);
   }
 

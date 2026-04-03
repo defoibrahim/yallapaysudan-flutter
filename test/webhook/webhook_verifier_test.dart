@@ -17,8 +17,7 @@ void main() {
 
   group('WebhookVerifier', () {
     test('accepts valid signature within tolerance', () {
-      final timestamp =
-          DateTime.now().millisecondsSinceEpoch.toString();
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final body = jsonEncode({
         'clientReferenceId': 'order-123',
         'paymentReferenceId': 'yp-ref-456',
@@ -41,8 +40,7 @@ void main() {
     });
 
     test('rejects invalid signature', () {
-      final timestamp =
-          DateTime.now().millisecondsSinceEpoch.toString();
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final body = jsonEncode({
         'clientReferenceId': 'order-123',
         'paymentReferenceId': 'yp-ref-456',
@@ -79,11 +77,13 @@ void main() {
           timestamp: oldTimestamp,
           rawBody: body,
         ),
-        throwsA(isA<InvalidSignatureException>().having(
-          (e) => e.message,
-          'message',
-          contains('too old'),
-        )),
+        throwsA(
+          isA<InvalidSignatureException>().having(
+            (e) => e.message,
+            'message',
+            contains('too old'),
+          ),
+        ),
       );
     });
 
@@ -128,8 +128,7 @@ void main() {
     });
 
     test('parses cancelled status', () {
-      final timestamp =
-          DateTime.now().millisecondsSinceEpoch.toString();
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final body = jsonEncode({
         'clientReferenceId': 'order-789',
         'paymentReferenceId': 'yp-ref-012',

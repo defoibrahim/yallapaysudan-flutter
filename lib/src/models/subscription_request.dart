@@ -65,12 +65,12 @@ class SubscriptionRequest extends Equatable {
 
   @override
   List<Object?> get props => [
-        amount,
-        clientReferenceId,
-        description,
-        paymentSuccessfulRedirectUrl,
-        paymentFailedRedirectUrl,
-        commissionPaidByCustomer,
-        subscriptionConfiguration,
-      ];
+    amount,
+    clientReferenceId,
+    description,
+    paymentSuccessfulRedirectUrl,
+    paymentFailedRedirectUrl,
+    commissionPaidByCustomer,
+    subscriptionConfiguration,
+  ];
 }

@@ -49,9 +49,9 @@ class WebhookPayload extends Equatable {
 
   @override
   List<Object?> get props => [
-        clientReferenceId,
-        paymentReferenceId,
-        status,
-        timestamp,
-      ];
+    clientReferenceId,
+    paymentReferenceId,
+    status,
+    timestamp,
+  ];
 }

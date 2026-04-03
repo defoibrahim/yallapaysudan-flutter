@@ -10,10 +10,7 @@ class CheckoutResult extends Equatable {
   /// The final URL that triggered the result, if available.
   final String? redirectUrl;
 
-  const CheckoutResult({
-    required this.status,
-    this.redirectUrl,
-  });
+  const CheckoutResult({required this.status, this.redirectUrl});
 
   bool get isSuccessful => status == PaymentStatus.successful;
 
