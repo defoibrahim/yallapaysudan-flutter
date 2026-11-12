@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Resolved locally (may point at the local core package via tool/dev_overrides.sh)
+pubspec.lock
+server/pubspec.lock

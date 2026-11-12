@@ -1,7 +1,7 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart' show dotenv;
 import 'package:material_ui/material_ui.dart';
 import 'package:yalla_pay_sudan/yalla_pay_sudan.dart';
-import 'package:yalla_pay_sudan_core/yalla_pay_sudan_core.dart';
+
+import 'checkout_backend.dart';
 
 class PaymentPage extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -13,109 +13,62 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  late final YallaPayClient _client;
+  // The app holds no YallaPaySudan secrets: the backend in example/server
+  // creates the payment and is the source of truth for the order status.
+  final _backend = CheckoutBackend();
   bool _loading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _client = YallaPayClient(
-      YallaPayConfig.sandbox(
-        apiKey: dotenv.env['YALLAPAY_API_KEY']!,
-        enableLogging: true,
-      ),
-    );
-  }
 
   // ---------------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------------
 
-  Future<void> _pay() async {
+  Future<void> _pay() => _checkout('payment', label: 'Payment');
+
+  Future<void> _subscribe() => _checkout('subscription', label: 'Subscription');
+
+  Future<void> _checkout(String kind, {required String label}) async {
     setState(() => _loading = true);
-
     try {
-      final orderId = 'order-${DateTime.now().millisecondsSinceEpoch}';
-      final response = await _client.createPayment(
-        PaymentRequest(
-          amount: 5000,
-          clientReferenceId: orderId,
-          description: 'Example product',
-          paymentSuccessfulRedirectUrl: 'https://example.com/success',
-          paymentFailedRedirectUrl: 'https://example.com/failed',
-        ),
-      );
-
+      // 1. The backend creates the payment link.
+      final session = await _backend.startCheckout(kind);
       if (!mounted) return;
 
+      // 2. The customer pays in the in-app checkout.
       final result = await YallaPayCheckoutWebView.show(
         context,
-        response: response,
+        paymentUrl: session.paymentUrl,
+        successUrl: session.successUrl,
+        failedUrl: session.failedUrl,
       );
 
+      // 3. The WebView result is only a hint: ask the backend, which knows
+      //    from the verified webhook or the gateway's status API.
+      final status = await _backend.orderStatus(session.orderId);
       if (!mounted) return;
-      _handleResult(result);
-    } on PaymentException catch (e) {
-      _showSnackBar(e.message, type: _SnackType.error);
-    } on NetworkException catch (e) {
-      _showSnackBar(e.message, type: _SnackType.error);
+      _handleResult(label, result, status);
+    } on Exception catch (e) {
+      if (mounted) _showSnackBar('$e', type: _SnackType.error);
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
-  Future<void> _subscribe() async {
-    setState(() => _loading = true);
-
-    try {
-      final subId = 'sub-${DateTime.now().millisecondsSinceEpoch}';
-      final response = await _client.createSubscription(
-        SubscriptionRequest(
-          amount: 3000,
-          clientReferenceId: subId,
-          description: 'Monthly plan',
-          subscriptionConfiguration: const SubscriptionConfiguration(
-            interval: SubscriptionInterval.month,
-            intervalCycle: 1,
-            totalCycles: 12,
-          ),
-        ),
-      );
-
-      if (!mounted) return;
-
-      final result = await YallaPayCheckoutWebView.show(
-        context,
-        response: response,
-      );
-
-      if (!mounted) return;
-      _handleResult(result, isSubscription: true);
-    } on YallaPayException catch (e) {
-      _showSnackBar(e.message, type: _SnackType.error);
-    } finally {
-      setState(() => _loading = false);
-    }
-  }
-
-  void _handleResult(CheckoutResult? result, {bool isSubscription = false}) {
-    final label = isSubscription ? 'Subscription' : 'Payment';
-
-    switch (result?.status) {
-      case PaymentStatus.successful:
+  void _handleResult(String label, CheckoutResult result, String status) {
+    switch (status) {
+      case 'successful':
         _showSnackBar('$label successful!', type: _SnackType.success);
-      case PaymentStatus.failed:
-        _showSnackBar('$label failed.', type: _SnackType.error);
-      case PaymentStatus.cancelled:
+      case 'failed' || 'revoked' || 'expired':
+        _showSnackBar('$label $status.', type: _SnackType.error);
+      case 'cancelled':
         _showSnackBar('$label cancelled.');
-      case PaymentStatus.revoked:
-        _showSnackBar('$label revoked.', type: _SnackType.error);
-      case PaymentStatus.expired:
-        _showSnackBar('$label expired.', type: _SnackType.error);
-      case PaymentStatus.unknown:
-        _showSnackBar('$label status unknown.', type: _SnackType.error);
-      case null:
-        _showSnackBar('Checkout dismissed.');
+      default:
+        // Not confirmed yet. A successful redirect usually means the webhook
+        // is on its way.
+        _showSnackBar(
+          result.isSuccessful
+              ? '$label received, waiting for confirmation.'
+              : 'Checkout closed.',
+        );
     }
   }
 
@@ -172,7 +125,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   void dispose() {
-    _client.dispose();
+    _backend.close();
     super.dispose();
   }
 
