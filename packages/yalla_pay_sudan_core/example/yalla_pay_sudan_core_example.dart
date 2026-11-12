@@ -53,7 +53,9 @@ Future<void> main() async {
         _json(request.response, HttpStatus.notFound, {'error': 'not found'});
       }
     } on InvalidSignatureException {
-      _json(request.response, HttpStatus.unauthorized, {'error': 'bad signature'});
+      _json(request.response, HttpStatus.unauthorized, {
+        'error': 'bad signature',
+      });
     } on YallaPayException catch (e) {
       _json(request.response, HttpStatus.badGateway, {'error': e.message});
     }
