@@ -344,7 +344,11 @@ void main() {
         ),
       );
       await tester.tap(find.text('Pay'));
-      await tester.pumpAndSettle();
+      // Let the route transition finish. (pumpAndSettle would wait forever:
+      // the loading spinner keeps animating because the fake page never
+      // finishes loading.)
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
       return result;
     }
 
