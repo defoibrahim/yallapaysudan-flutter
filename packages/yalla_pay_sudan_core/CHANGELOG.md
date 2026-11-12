@@ -27,6 +27,8 @@ continues from `yalla_pay_sudan` 1.x. Changes compared with 1.0.2:
   are not absolute http(s) URLs. Whole amounts are sent as integers.
 - `WebhookVerifier` rejects an empty secret, and `YallaPayClient` rejects an
   empty API key.
+- A success response without an absolute https `paymentUrl` throws
+  `InvalidResponseException` instead of returning an unusable link.
 - `WebhookVerifier` timestamps more than the tolerance in the future are now
   reported as "outside the allowed window" (the message changed).
 
