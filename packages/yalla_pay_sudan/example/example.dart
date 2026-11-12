@@ -42,7 +42,7 @@ class _PaymentExampleState extends State<PaymentExample> {
 
       // 4. Handle the result
       setState(() {
-        _status = switch (result?.status) {
+        _status = switch (result.status) {
           PaymentStatus.successful => 'Payment successful!',
           PaymentStatus.failed => 'Payment failed.',
           PaymentStatus.cancelled => 'Payment cancelled.',
