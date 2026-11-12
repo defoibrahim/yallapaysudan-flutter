@@ -13,6 +13,10 @@ concurrency:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   check:
     name: Analyze, format and test
@@ -28,6 +32,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # The example app reads its sandbox key from a git-ignored .env asset.
+          cp example/.env.example example/.env
           flutter pub get
           (cd example && flutter pub get)
 
