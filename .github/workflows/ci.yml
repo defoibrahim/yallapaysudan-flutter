@@ -61,6 +61,14 @@ jobs:
         working-directory: ${{ env.CORE }}
         run: |
           awk -F: '/^LF:/{lf+=$2} /^LH:/{lh+=$2} END{printf "core line coverage: %d/%d (%.1f%%)\n", lh, lf, 100*lh/lf}' coverage/lcov.info | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Example backend (pure Dart)
+        working-directory: ${{ env.FLUTTER_PKG }}/example/server
+        run: |
+          bash "$GITHUB_WORKSPACE/tool/dev_overrides.sh"
+          dart pub get
+          dart format --set-exit-if-changed . || { git diff -- '*.dart'; exit 1; }
+          dart analyze --fatal-infos
+          dart test
       - uses: actions/upload-artifact@v7
         with:
           name: coverage-core
@@ -80,10 +88,9 @@ jobs:
         run: bash tool/dev_overrides.sh
       - name: Install dependencies
         run: |
-          # The example app reads its sandbox key from a git-ignored .env asset.
-          cp "$FLUTTER_PKG/example/.env.example" "$FLUTTER_PKG/example/.env"
           (cd "$FLUTTER_PKG" && flutter pub get)
           (cd "$FLUTTER_PKG/example" && flutter pub get)
+          (cd "$FLUTTER_PKG/example/server" && dart pub get)
       - name: Format
         working-directory: ${{ env.FLUTTER_PKG }}
         run: |
@@ -93,9 +100,11 @@ jobs:
             git diff -- '*.dart'
             exit 1
           fi
-      - name: Analyze (package and example)
+      - name: Analyze (package, example app and backend)
         working-directory: ${{ env.FLUTTER_PKG }}
         run: flutter analyze --fatal-infos
+      - name: README samples are analyzed
+        run: python3 tool/ci/check_readme_snippets.py "$FLUTTER_PKG/README.md" "$FLUTTER_PKG/test/readme_snippets_test.dart"
       - name: Test with coverage
         working-directory: ${{ env.FLUTTER_PKG }}
         run: flutter test --coverage
@@ -152,3 +161,38 @@ jobs:
       - name: Proxy log
         if: always()
         run: cat "$RUNNER_TEMP/proxy/log.txt" || true
+
+  example-build:
+    name: Build example (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android
+            os: ubuntu-latest
+            build: flutter build apk --release
+          - platform: ios
+            os: macos-latest
+            build: flutter build ios --release --no-codesign
+          - platform: macos
+            os: macos-latest
+            build: flutter build macos --release
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        if: matrix.platform == 'android'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: bash tool/dev_overrides.sh
+      - name: ${{ matrix.build }}
+        working-directory: ${{ env.FLUTTER_PKG }}/example
+        run: |
+          flutter pub get
+          ${{ matrix.build }}

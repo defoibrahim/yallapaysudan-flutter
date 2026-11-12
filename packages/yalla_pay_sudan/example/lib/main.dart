@@ -1,12 +1,8 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'payment_page.dart';
 
-Future<void> main() async {
-  await dotenv.load();
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});

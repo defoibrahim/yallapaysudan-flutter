@@ -11,6 +11,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 targets=(
   "packages/yalla_pay_sudan:../yalla_pay_sudan_core"
   "packages/yalla_pay_sudan/example:../../yalla_pay_sudan_core"
+  "packages/yalla_pay_sudan/example/server:../../../yalla_pay_sudan_core"
 )
 
 for entry in "${targets[@]}"; do

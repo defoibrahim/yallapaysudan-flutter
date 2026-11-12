@@ -1,0 +1,18 @@
+name: yalla_pay_sudan_example_server
+description: Reference checkout backend for the yalla_pay_sudan example app.
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  shelf: ^1.4.0
+  shelf_router: ^1.1.0
+  yalla_pay_sudan_core: ^2.0.0
+
+dev_dependencies:
+  crypto: ^3.0.6
+  dio: ^5.9.0
+  lints: ^6.0.0
+  test: ^1.25.0

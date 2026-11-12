@@ -1,83 +1,55 @@
+// The smallest complete use of yalla_pay_sudan. The full example app is in
+// lib/, and the backend it talks to is in server/.
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:material_ui/material_ui.dart';
 import 'package:yalla_pay_sudan/yalla_pay_sudan.dart';
-import 'package:yalla_pay_sudan_core/yalla_pay_sudan_core.dart';
 
-void main() => runApp(const MaterialApp(home: PaymentExample()));
+/// Your backend. It creates the payment with yalla_pay_sudan_core, so the
+/// YallaPaySudan auth token never ships inside the app.
+final backend = Uri.parse('https://api.your-shop.example');
 
-class PaymentExample extends StatefulWidget {
-  const PaymentExample({super.key});
+void main() => runApp(const MaterialApp(home: CheckoutExample()));
+
+class CheckoutExample extends StatefulWidget {
+  const CheckoutExample({super.key});
 
   @override
-  State<PaymentExample> createState() => _PaymentExampleState();
+  State<CheckoutExample> createState() => _CheckoutExampleState();
 }
 
-class _PaymentExampleState extends State<PaymentExample> {
-  // 1. Create the client (use .sandbox() for testing, .live() for production)
-  final client = YallaPayClient(
-    YallaPayConfig.sandbox(apiKey: 'your-test-auth-token'),
-  );
-
+class _CheckoutExampleState extends State<CheckoutExample> {
   String _status = '';
 
-  // 2. Create a payment and open the checkout WebView
-  Future<void> _createPayment() async {
-    try {
-      final response = await client.createPayment(
-        PaymentRequest(
-          amount: 5000, // SDG, minimum 1,000
-          clientReferenceId: 'order-${DateTime.now().millisecondsSinceEpoch}',
-          description: 'Example product',
-          paymentSuccessfulRedirectUrl: 'https://myapp.com/success',
-          paymentFailedRedirectUrl: 'https://myapp.com/failed',
-        ),
-      );
+  Future<void> _pay() async {
+    // 1. Ask your backend to start a checkout. It answers with the checkout
+    //    URL and the redirect URLs it created the payment with.
+    final response = await http.post(backend.resolve('/checkout'));
+    final session = jsonDecode(response.body) as Map<String, dynamic>;
+    if (!mounted) return;
 
-      if (!mounted) return;
+    // 2. Open the checkout in the app.
+    final result = await YallaPayCheckoutWebView.show(
+      context,
+      paymentUrl: session['paymentUrl'] as String,
+      successUrl: session['successUrl'] as String,
+      failedUrl: session['failedUrl'] as String,
+    );
 
-      // 3. Open in-app checkout — redirect URLs are auto-detected from response
-      final result = await YallaPayCheckoutWebView.show(
-        context,
-        response: response,
-      );
-
-      // 4. Handle the result
-      setState(() {
-        _status = switch (result.status) {
-          PaymentStatus.successful => 'Payment successful!',
-          PaymentStatus.failed => 'Payment failed.',
-          PaymentStatus.cancelled => 'Payment cancelled.',
-          _ => 'Checkout dismissed.',
-        };
-      });
-    } on PaymentException catch (e) {
-      setState(() => _status = 'API error: ${e.message}');
-    } on NetworkException catch (e) {
-      setState(() => _status = 'Network error: ${e.message}');
-    }
-  }
-
-  // 5. Create a subscription
-  Future<void> _createSubscription() async {
-    try {
-      final response = await client.createSubscription(
-        SubscriptionRequest(
-          amount: 3000,
-          clientReferenceId: 'sub-${DateTime.now().millisecondsSinceEpoch}',
-          description: 'Monthly plan',
-          subscriptionConfiguration: const SubscriptionConfiguration(
-            interval: SubscriptionInterval.month,
-            intervalCycle: 1,
-            totalCycles: 12, // omit for indefinite
-          ),
-        ),
-      );
-
-      if (!mounted) return;
-
-      await YallaPayCheckoutWebView.show(context, response: response);
-    } on YallaPayException catch (e) {
-      setState(() => _status = 'Error: ${e.message}');
-    }
+    // 3. The result is a hint for the UI. Your backend confirms the payment
+    //    from the verified webhook before you fulfil the order.
+    if (!mounted) return;
+    setState(() {
+      _status = switch (result.status) {
+        PaymentStatus.successful => 'Thanks! Confirming your payment...',
+        PaymentStatus.failed => 'The payment failed. Please try again.',
+        PaymentStatus.cancelled => 'Checkout closed.',
+        PaymentStatus.revoked ||
+        PaymentStatus.expired ||
+        PaymentStatus.unknown => 'Checking the payment status...',
+      };
+    });
   }
 
   @override
@@ -88,28 +60,12 @@ class _PaymentExampleState extends State<PaymentExample> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              onPressed: _createPayment,
-              child: const Text('Pay 5,000 SDG'),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _createSubscription,
-              child: const Text('Subscribe 3,000 SDG/mo'),
-            ),
-            if (_status.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              Text(_status, style: Theme.of(context).textTheme.titleMedium),
-            ],
+            FilledButton(onPressed: _pay, child: const Text('Pay 5,000 SDG')),
+            const SizedBox(height: 24),
+            Text(_status),
           ],
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    client.dispose();
-    super.dispose();
   }
 }

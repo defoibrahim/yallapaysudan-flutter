@@ -1,5 +1,5 @@
 name: yalla_pay_sudan_example
-description: "Example app for yalla_pay_sudan package."
+description: "Example app for the yalla_pay_sudan package. Payments are created by the reference backend in server/, so the app holds no secrets."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,18 +9,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  http: ^1.2.0
+  material_ui: ^1.0.0
   yalla_pay_sudan:
     path: ../
-  flutter_dotenv: ^5.2.1
-  material_ui: ^1.0.0
-  yalla_pay_sudan_core: ^2.0.0
 
 dev_dependencies:
+  flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
-  assets:
-    - .env
