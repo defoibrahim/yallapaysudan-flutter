@@ -1,42 +1,63 @@
-# Publishes to pub.dev when a release tag is pushed, using pub.dev's
+# Publishes a package to pub.dev when its release tag is pushed, using pub.dev
 # automated publishing (GitHub OIDC). No pub.dev credentials are stored here.
 #
-# One-time setup on pub.dev (package Admin tab > Automated publishing):
-#   - Enable "publishing from GitHub Actions"
-#   - Repository: defoibrahim/yallapaysudan-flutter
-#   - Tag pattern: yalla_pay_sudan-v{{version}}
+#   yalla_pay_sudan_core-v<version>  ->  packages/yalla_pay_sudan_core
+#   yalla_pay_sudan-v<version>       ->  packages/yalla_pay_sudan
 #
-# Release: bump the version in pubspec.yaml and CHANGELOG.md, merge, then
-#   git tag yalla_pay_sudan-v<version> && git push origin yalla_pay_sudan-v<version>
+# One-time setup per package on pub.dev (package page > Admin > Automated
+# publishing): enable publishing from GitHub Actions, repository
+# `defoibrahim/yallapaysudan-flutter`, tag pattern as above with
+# `{{version}}` in place of <version>. A package that does not exist on
+# pub.dev yet must be published once by hand before this can be enabled.
 #
-# The dart-lang/setup-dart reusable publish workflow runs `dart pub publish`,
-# which cannot resolve a Flutter package, so this job follows pub.dev's
-# documented Flutter variant: setup-dart provides the OIDC token, then
-# `flutter pub publish` uploads.
+# Release order: core first, then the Flutter package (it depends on core).
 name: Publish to pub.dev
 
 on:
   push:
     tags:
+      - 'yalla_pay_sudan_core-v[0-9]+.[0-9]+.[0-9]+*'
       - 'yalla_pay_sudan-v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
-  publish:
-    name: Publish yalla_pay_sudan
+  check-tag:
+    name: Check tag matches pubspec version
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # required for pub.dev OIDC authentication
+      contents: read
+    outputs:
+      package: ${{ steps.check.outputs.package }}
     steps:
       - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-      - name: Check tag matches pubspec version
+      - id: check
+        shell: bash
         run: |
-          version=$(grep -E '^version:' pubspec.yaml | awk '{print $2}')
-          test "${GITHUB_REF_NAME}" = "yalla_pay_sudan-v${version}" || {
-            echo "::error::Tag ${GITHUB_REF_NAME} does not match pubspec version ${version}"; exit 1; }
-      - run: flutter pub get
-      - run: flutter pub publish --dry-run
-      - run: flutter pub publish --force
+          package="${GITHUB_REF_NAME%-v*}"
+          version="${GITHUB_REF_NAME##*-v}"
+          pubspec="packages/$package/pubspec.yaml"
+          test -f "$pubspec" || { echo "::error::No package for tag $GITHUB_REF_NAME"; exit 1; }
+          actual=$(grep -E '^version:' "$pubspec" | awk '{print $2}')
+          test "$actual" = "$version" || {
+            echo "::error::Tag $GITHUB_REF_NAME does not match $pubspec version $actual"; exit 1; }
+          echo "package=$package" >> "$GITHUB_OUTPUT"
+
+  core:
+    name: Publish yalla_pay_sudan_core
+    needs: check-tag
+    if: needs.check-tag.outputs.package == 'yalla_pay_sudan_core'
+    permissions:
+      id-token: write # pub.dev OIDC authentication
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: packages/yalla_pay_sudan_core
+      use-flutter: false
+
+  flutter:
+    name: Publish yalla_pay_sudan
+    needs: check-tag
+    if: needs.check-tag.outputs.package == 'yalla_pay_sudan'
+    permissions:
+      id-token: write # pub.dev OIDC authentication
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: packages/yalla_pay_sudan
