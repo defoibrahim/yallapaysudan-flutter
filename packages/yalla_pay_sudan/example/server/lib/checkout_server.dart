@@ -17,8 +17,7 @@ class CheckoutServer {
     required this.client,
     Uri? redirectBase,
     DateTime Function()? clock,
-  }) : redirectBase =
-           redirectBase ?? Uri.parse('https://example.com/yallapay'),
+  }) : redirectBase = redirectBase ?? Uri.parse('https://example.com/yallapay'),
        _clock = clock ?? DateTime.now;
 
   /// The gateway client. Holds the secrets.

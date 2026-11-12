@@ -82,7 +82,11 @@ void main() {
   }
 
   Future<String> startCheckout([String kind = 'payment']) async {
-    final (status, json) = await call('POST', '/checkout', body: {'kind': kind});
+    final (status, json) = await call(
+      'POST',
+      '/checkout',
+      body: {'kind': kind},
+    );
     expect(status, 200);
     return json['orderId'] as String;
   }
@@ -199,7 +203,10 @@ void main() {
       }
 
       final requestsBefore = gateway.requests.length;
-      expect((await call('GET', '/orders/$orderId')).$2['status'], 'successful');
+      expect(
+        (await call('GET', '/orders/$orderId')).$2['status'],
+        'successful',
+      );
       expect(gateway.requests, hasLength(requestsBefore)); // no status call
     });
 
