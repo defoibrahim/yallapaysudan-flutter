@@ -92,9 +92,9 @@ void main() {
     });
 
     test('re-encoded JSON (different bytes) is rejected', () {
-      final reencoded = const JsonEncoder.withIndent(' ').convert(
-        jsonDecode(katBody),
-      );
+      final reencoded = const JsonEncoder.withIndent(
+        ' ',
+      ).convert(jsonDecode(katBody));
 
       expect(
         () => verifierAt(katTime).verify(
@@ -123,7 +123,12 @@ void main() {
     });
 
     test('a truncated or garbage signature is rejected', () {
-      for (final signature in ['', 'abc', katSignature.substring(1), 'x' * 64]) {
+      for (final signature in [
+        '',
+        'abc',
+        katSignature.substring(1),
+        'x' * 64,
+      ]) {
         expect(
           () => verifierAt(katTime).verify(
             signature: signature,
@@ -191,14 +196,15 @@ void main() {
 
     test('custom tolerance is respected', () {
       expect(
-        () => verifierAt(
-          katTime.add(const Duration(minutes: 1)),
-          tolerance: const Duration(seconds: 30),
-        ).verify(
-          signature: katSignature,
-          timestamp: katTimestamp,
-          rawBody: katBody,
-        ),
+        () =>
+            verifierAt(
+              katTime.add(const Duration(minutes: 1)),
+              tolerance: const Duration(seconds: 30),
+            ).verify(
+              signature: katSignature,
+              timestamp: katTimestamp,
+              rawBody: katBody,
+            ),
         throwsA(isA<InvalidSignatureException>()),
       );
     });
@@ -233,11 +239,9 @@ void main() {
     test('a correctly signed body that is not JSON', () {
       const body = 'not json';
       expect(
-        () => verifierAt(katTime).verify(
-          signature: sign(body),
-          timestamp: katTimestamp,
-          rawBody: body,
-        ),
+        () => verifierAt(
+          katTime,
+        ).verify(signature: sign(body), timestamp: katTimestamp, rawBody: body),
         throwsA(isA<InvalidResponseException>()),
       );
     });
@@ -245,11 +249,9 @@ void main() {
     test('a correctly signed JSON array', () {
       const body = '[1, 2]';
       expect(
-        () => verifierAt(katTime).verify(
-          signature: sign(body),
-          timestamp: katTimestamp,
-          rawBody: body,
-        ),
+        () => verifierAt(
+          katTime,
+        ).verify(signature: sign(body), timestamp: katTimestamp, rawBody: body),
         throwsA(isA<InvalidResponseException>()),
       );
     });
@@ -257,11 +259,9 @@ void main() {
     test('a correctly signed body with a missing field', () {
       const body = '{"clientReferenceId":"order-1","status":"SUCCESSFUL"}';
       expect(
-        () => verifierAt(katTime).verify(
-          signature: sign(body),
-          timestamp: katTimestamp,
-          rawBody: body,
-        ),
+        () => verifierAt(
+          katTime,
+        ).verify(signature: sign(body), timestamp: katTimestamp, rawBody: body),
         throwsA(isA<InvalidResponseException>()),
       );
     });
@@ -286,11 +286,9 @@ void main() {
           '{"clientReferenceId":"order-1","paymentReferenceId":"yp-1",'
           '"status":"PARTIALLY_REFUNDED","timestamp":1719057920000}';
 
-      final payload = verifierAt(katTime).verify(
-        signature: sign(body),
-        timestamp: katTimestamp,
-        rawBody: body,
-      );
+      final payload = verifierAt(
+        katTime,
+      ).verify(signature: sign(body), timestamp: katTimestamp, rawBody: body);
 
       expect(payload.status, PaymentStatus.unknown);
       expect(payload.rawStatus, 'PARTIALLY_REFUNDED');

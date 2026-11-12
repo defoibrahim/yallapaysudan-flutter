@@ -20,7 +20,10 @@ class PaymentApi {
 
   /// Creates a one-time payment link.
   Future<PaymentResponse> generatePaymentLink(PaymentRequest request) async {
-    final data = await _post(ApiConstants.generatePaymentLink, request.toJson());
+    final data = await _post(
+      ApiConstants.generatePaymentLink,
+      request.toJson(),
+    );
     return _parsePaymentResponse(data);
   }
 
@@ -113,7 +116,8 @@ class PaymentApi {
         final body = _decodeObject(e.response?.data);
         try {
           return _paymentException(
-            code: (body == null ? null : readString(body, 'responseCode')) ??
+            code:
+                (body == null ? null : readString(body, 'responseCode')) ??
                 '$statusCode',
             message: body == null ? null : readString(body, 'responseMessage'),
             statusCode: statusCode,
@@ -131,7 +135,8 @@ class PaymentApi {
         // connectionError, badCertificate, cancel, unknown, and any type a
         // future Dio version adds.
         return NetworkException(
-          message: 'Request to YallaPaySudan failed: ${e.message ?? e.type.name}',
+          message:
+              'Request to YallaPaySudan failed: ${e.message ?? e.type.name}',
           dioException: e,
         );
     }

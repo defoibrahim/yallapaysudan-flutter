@@ -109,11 +109,17 @@ void main() {
 
     test('whole amounts are sent as integers, fractions kept', () {
       expect(
-        const PaymentRequest(amount: 5000.0, clientReferenceId: 'o').toJson()['amount'],
+        const PaymentRequest(
+          amount: 5000.0,
+          clientReferenceId: 'o',
+        ).toJson()['amount'],
         isA<int>(),
       );
       expect(
-        const PaymentRequest(amount: 1500.5, clientReferenceId: 'o').toJson()['amount'],
+        const PaymentRequest(
+          amount: 1500.5,
+          clientReferenceId: 'o',
+        ).toJson()['amount'],
         1500.5,
       );
     });
@@ -121,11 +127,17 @@ void main() {
     test('minimumAmount is the gateway minimum', () {
       expect(PaymentRequest.minimumAmount, 1000);
       expect(
-        () => const PaymentRequest(amount: 999.99, clientReferenceId: 'o').validate(),
+        () => const PaymentRequest(
+          amount: 999.99,
+          clientReferenceId: 'o',
+        ).validate(),
         throwsArgumentError,
       );
       expect(
-        () => const PaymentRequest(amount: 1000, clientReferenceId: 'o').validate(),
+        () => const PaymentRequest(
+          amount: 1000,
+          clientReferenceId: 'o',
+        ).validate(),
         returnsNormally,
       );
     });

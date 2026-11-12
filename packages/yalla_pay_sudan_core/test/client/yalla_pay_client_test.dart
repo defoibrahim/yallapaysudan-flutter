@@ -179,8 +179,14 @@ void main() {
 
   group('formatTransactionDate', () {
     test('pads month, day and year', () {
-      expect(YallaPayClient.formatTransactionDate(DateTime(2026, 1, 2)), '2026-01-02');
-      expect(YallaPayClient.formatTransactionDate(DateTime(999, 12, 31)), '0999-12-31');
+      expect(
+        YallaPayClient.formatTransactionDate(DateTime(2026, 1, 2)),
+        '2026-01-02',
+      );
+      expect(
+        YallaPayClient.formatTransactionDate(DateTime(999, 12, 31)),
+        '0999-12-31',
+      );
     });
   });
 

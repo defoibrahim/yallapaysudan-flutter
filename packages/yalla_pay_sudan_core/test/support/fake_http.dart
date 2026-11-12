@@ -33,13 +33,14 @@ class FakeAdapter implements HttpClientAdapter {
 }
 
 /// A JSON response.
-ResponseBody jsonResponse(Object? body, {int status = 200}) => ResponseBody.fromString(
-  jsonEncode(body),
-  status,
-  headers: {
-    Headers.contentTypeHeader: [Headers.jsonContentType],
-  },
-);
+ResponseBody jsonResponse(Object? body, {int status = 200}) =>
+    ResponseBody.fromString(
+      jsonEncode(body),
+      status,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
 
 /// A non-JSON response.
 ResponseBody textResponse(

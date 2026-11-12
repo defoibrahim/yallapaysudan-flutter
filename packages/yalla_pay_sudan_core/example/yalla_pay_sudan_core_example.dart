@@ -28,7 +28,10 @@ Future<void> main() async {
 
   await for (final request in server) {
     // Keep the exact bytes: the webhook signature covers them.
-    final body = await request.fold<List<int>>([], (all, chunk) => all..addAll(chunk));
+    final body = await request.fold<List<int>>(
+      [],
+      (all, chunk) => all..addAll(chunk),
+    );
     try {
       if (request.method == 'POST' && request.uri.path == '/checkout') {
         final orderId = 'order-${DateTime.now().millisecondsSinceEpoch}';

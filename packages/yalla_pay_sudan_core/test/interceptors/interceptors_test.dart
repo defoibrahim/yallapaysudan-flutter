@@ -47,7 +47,8 @@ void main() {
     });
 
     test('logs errors without the token', () async {
-      adapter.handler = (_) => jsonResponse({'responseMessage': 'nope'}, status: 401);
+      adapter.handler = (_) =>
+          jsonResponse({'responseMessage': 'nope'}, status: 401);
 
       await expectLater(
         dio.post<Object?>('/pay', data: {'amount': 5000}),

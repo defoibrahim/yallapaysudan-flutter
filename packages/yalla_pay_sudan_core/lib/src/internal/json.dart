@@ -36,7 +36,8 @@ num? readNum(Map<String, dynamic> json, String key) {
   return switch (value) {
     null => null,
     num() => value,
-    String() => num.tryParse(value) ?? (throw _wrongType(json, key, 'a number', value)),
+    String() =>
+      num.tryParse(value) ?? (throw _wrongType(json, key, 'a number', value)),
     _ => throw _wrongType(json, key, 'a number', value),
   };
 }

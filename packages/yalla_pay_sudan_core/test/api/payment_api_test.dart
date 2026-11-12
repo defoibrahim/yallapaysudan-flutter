@@ -45,7 +45,8 @@ void main() {
     });
 
     test('numeric responseCode is read as a string', () async {
-      adapter.handler = (_) => jsonResponse({...successBody, 'responseCode': 0});
+      adapter.handler = (_) =>
+          jsonResponse({...successBody, 'responseCode': 0});
 
       final result = await api.generatePaymentLink(request);
 
@@ -103,8 +104,11 @@ void main() {
     });
 
     test('HTTP error with an HTML body throws PaymentException', () {
-      adapter.handler = (_) =>
-          textResponse('<html>Bad gateway</html>', status: 502, contentType: 'text/html');
+      adapter.handler = (_) => textResponse(
+        '<html>Bad gateway</html>',
+        status: 502,
+        contentType: 'text/html',
+      );
 
       expect(
         api.generatePaymentLink(request),
@@ -279,7 +283,8 @@ void main() {
     });
 
     test('expired status', () async {
-      adapter.handler = (_) => jsonResponse({'status': 'EXPIRED', 'amount': '3000'});
+      adapter.handler = (_) =>
+          jsonResponse({'status': 'EXPIRED', 'amount': '3000'});
 
       final result = await status();
 
@@ -314,7 +319,8 @@ void main() {
     });
 
     test('responseCode "0" with a status parses normally', () async {
-      adapter.handler = (_) => jsonResponse({'responseCode': '0', 'status': 'FAILED'});
+      adapter.handler = (_) =>
+          jsonResponse({'responseCode': '0', 'status': 'FAILED'});
 
       expect((await status()).status, PaymentStatus.failed);
     });

@@ -28,7 +28,10 @@ class YallaPayLoggingInterceptor extends Interceptor {
   }
 
   @override
-  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
+  void onResponse(
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) {
     log('RESPONSE[${response.statusCode}] => ${response.requestOptions.path}');
     handler.next(response);
   }

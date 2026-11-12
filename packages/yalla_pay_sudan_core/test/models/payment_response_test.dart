@@ -129,7 +129,8 @@ void main() {
 
     test('rejects a non-numeric amount', () {
       expect(
-        () => PaymentStatusResponse.fromJson({'status': 'FAILED', 'amount': 'a'}),
+        () =>
+            PaymentStatusResponse.fromJson({'status': 'FAILED', 'amount': 'a'}),
         throwsA(isA<InvalidResponseException>()),
       );
     });
@@ -160,7 +161,12 @@ void main() {
       expect(payload.timestamp, 1719057920000);
     });
 
-    for (final key in ['clientReferenceId', 'paymentReferenceId', 'status', 'timestamp']) {
+    for (final key in [
+      'clientReferenceId',
+      'paymentReferenceId',
+      'status',
+      'timestamp',
+    ]) {
       test('requires $key', () {
         expect(
           () => WebhookPayload.fromJson({...valid}..remove(key)),
