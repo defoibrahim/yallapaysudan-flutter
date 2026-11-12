@@ -48,6 +48,8 @@ jobs:
       - name: Analyze
         working-directory: ${{ env.CORE }}
         run: dart analyze --fatal-infos
+      - name: README samples are analyzed
+        run: python3 tool/ci/check_readme_snippets.py "$CORE/README.md" "$CORE/test/readme_snippets_test.dart"
       - name: Test with coverage
         working-directory: ${{ env.CORE }}
         run: |

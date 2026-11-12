@@ -70,5 +70,64 @@ void main() {
       expect(a, equals(b));
       expect(a, isNot(equals(c)));
     });
+
+    test('validate rejects non-finite amounts', () {
+      for (final amount in [double.nan, double.infinity]) {
+        expect(
+          () => PaymentRequest(
+            amount: amount,
+            clientReferenceId: 'order-1',
+          ).validate(),
+          throwsArgumentError,
+        );
+      }
+    });
+
+    test('validate rejects a blank reference', () {
+      expect(
+        () => const PaymentRequest(
+          amount: 5000,
+          clientReferenceId: '   ',
+        ).validate(),
+        throwsArgumentError,
+      );
+    });
+
+    test('validate rejects relative or non-http redirect URLs', () {
+      for (final url in ['/success', 'myapp://paid', 'example.com/ok']) {
+        expect(
+          () => PaymentRequest(
+            amount: 5000,
+            clientReferenceId: 'order-1',
+            paymentSuccessfulRedirectUrl: url,
+          ).validate(),
+          throwsArgumentError,
+          reason: url,
+        );
+      }
+    });
+
+    test('whole amounts are sent as integers, fractions kept', () {
+      expect(
+        const PaymentRequest(amount: 5000.0, clientReferenceId: 'o').toJson()['amount'],
+        isA<int>(),
+      );
+      expect(
+        const PaymentRequest(amount: 1500.5, clientReferenceId: 'o').toJson()['amount'],
+        1500.5,
+      );
+    });
+
+    test('minimumAmount is the gateway minimum', () {
+      expect(PaymentRequest.minimumAmount, 1000);
+      expect(
+        () => const PaymentRequest(amount: 999.99, clientReferenceId: 'o').validate(),
+        throwsArgumentError,
+      );
+      expect(
+        () => const PaymentRequest(amount: 1000, clientReferenceId: 'o').validate(),
+        returnsNormally,
+      );
+    });
   });
 }

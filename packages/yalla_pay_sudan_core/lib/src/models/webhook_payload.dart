@@ -1,33 +1,44 @@
 import 'package:equatable/equatable.dart';
 
+import '../internal/json.dart';
 import 'enums.dart';
 
-/// Parsed webhook payload from YallaPaySudan.
+/// A verified webhook notification from YallaPaySudan.
+///
+/// Webhooks can be delivered more than once. Make your handler idempotent,
+/// for example by ignoring a [paymentReferenceId] and [status] pair you have
+/// already processed.
 class WebhookPayload extends Equatable {
-  /// The merchant's unique transaction/order ID.
+  /// Your reference ID for the payment.
   final String clientReferenceId;
 
-  /// YallaPaySudan's internal transaction ID.
+  /// The gateway's transaction ID.
   final String paymentReferenceId;
 
-  /// Payment status.
+  /// The payment status. [PaymentStatus.unknown] if the gateway sent a
+  /// status this package does not know; see [rawStatus].
   final PaymentStatus status;
 
-  /// Webhook timestamp (Unix milliseconds).
+  /// The status exactly as the gateway sent it.
+  final String rawStatus;
+
+  /// Event time in Unix milliseconds, from the body.
   final int timestamp;
 
-  /// The full raw webhook payload.
+  /// The full decoded body.
   final Map<String, dynamic> raw;
 
+  /// Creates a [WebhookPayload].
   const WebhookPayload({
     required this.clientReferenceId,
     required this.paymentReferenceId,
     required this.status,
+    required this.rawStatus,
     required this.timestamp,
     required this.raw,
   });
 
-  /// Whether the payment was successful.
+  /// Whether the payment went through.
   bool get isSuccessful => status == PaymentStatus.successful;
 
   /// Whether the payment failed.
@@ -36,13 +47,18 @@ class WebhookPayload extends Equatable {
   /// Whether the payment was cancelled.
   bool get isCancelled => status == PaymentStatus.cancelled;
 
-  /// Creates a [WebhookPayload] from the webhook JSON body.
+  /// Reads a webhook body. All fields are required.
+  ///
+  /// Throws `InvalidResponseException` if a field is missing or has an
+  /// unusable type.
   factory WebhookPayload.fromJson(Map<String, dynamic> json) {
+    final rawStatus = requireString(json, 'status');
     return WebhookPayload(
-      clientReferenceId: json['clientReferenceId'] as String,
-      paymentReferenceId: json['paymentReferenceId'] as String,
-      status: PaymentStatus.fromString(json['status'] as String),
-      timestamp: json['timestamp'] as int,
+      clientReferenceId: requireString(json, 'clientReferenceId'),
+      paymentReferenceId: requireString(json, 'paymentReferenceId'),
+      status: PaymentStatus.fromString(rawStatus),
+      rawStatus: rawStatus,
+      timestamp: requireInt(json, 'timestamp'),
       raw: json,
     );
   }
@@ -52,6 +68,7 @@ class WebhookPayload extends Equatable {
     clientReferenceId,
     paymentReferenceId,
     status,
+    rawStatus,
     timestamp,
   ];
 }

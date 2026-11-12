@@ -1,31 +1,37 @@
 import 'package:equatable/equatable.dart';
 
-/// Response from the YallaPaySudan API after creating a payment or subscription.
+import '../internal/json.dart';
+
+/// The gateway's answer to a payment or subscription link request.
 class PaymentResponse extends Equatable {
-  /// Response code from the API. "0" indicates success.
+  /// Response code from the gateway. `"0"` means success.
   final String responseCode;
 
-  /// Human-readable response message.
+  /// Human-readable message from the gateway.
   final String responseMessage;
 
-  /// Server date when the response was generated (YYYY-MM-DD).
+  /// Server date of the response (YYYY-MM-DD), or empty if not sent.
   final String currentDate;
 
-  /// Server time when the response was generated (HH:MM:SS).
+  /// Server time of the response (HH:MM:SS), or empty if not sent.
   final String currentTime;
 
-  /// URL to redirect the customer to for payment checkout.
+  /// The hosted checkout URL to open for the customer. Empty when the
+  /// request failed.
   final String paymentUrl;
 
-  /// The full raw API response.
+  /// The full decoded response body.
   final Map<String, dynamic> raw;
 
-  /// The success redirect URL from the original request.
+  /// The success redirect URL from the request, attached by
+  /// `YallaPayClient` so the checkout can watch for it.
   final String? successRedirectUrl;
 
-  /// The failure redirect URL from the original request.
+  /// The failure redirect URL from the request, attached by
+  /// `YallaPayClient`.
   final String? failedRedirectUrl;
 
+  /// Creates a [PaymentResponse].
   const PaymentResponse({
     required this.responseCode,
     required this.responseMessage,
@@ -37,17 +43,20 @@ class PaymentResponse extends Equatable {
     this.failedRedirectUrl,
   });
 
-  /// Whether the API request was successful.
+  /// Whether the gateway accepted the request (`responseCode == "0"`).
   bool get isSuccess => responseCode == '0';
 
-  /// Creates a [PaymentResponse] from the API JSON response.
+  /// Reads a gateway response. Missing fields become empty strings; numeric
+  /// codes are converted to strings.
+  ///
+  /// Throws `InvalidResponseException` if a field has an unusable type.
   factory PaymentResponse.fromJson(Map<String, dynamic> json) {
     return PaymentResponse(
-      responseCode: json['responseCode'] as String? ?? '',
-      responseMessage: json['responseMessage'] as String? ?? '',
-      currentDate: json['currentDate'] as String? ?? '',
-      currentTime: json['currentTime'] as String? ?? '',
-      paymentUrl: json['paymentUrl'] as String? ?? '',
+      responseCode: readString(json, 'responseCode') ?? '',
+      responseMessage: readString(json, 'responseMessage') ?? '',
+      currentDate: readString(json, 'currentDate') ?? '',
+      currentTime: readString(json, 'currentTime') ?? '',
+      paymentUrl: readString(json, 'paymentUrl') ?? '',
       raw: json,
     );
   }
@@ -76,5 +85,7 @@ class PaymentResponse extends Equatable {
     currentDate,
     currentTime,
     paymentUrl,
+    successRedirectUrl,
+    failedRedirectUrl,
   ];
 }

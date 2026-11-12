@@ -1,30 +1,38 @@
 import 'package:equatable/equatable.dart';
 
+import '../internal/validation.dart';
 import 'subscription_configuration.dart';
 
-/// Request model for creating a subscription payment link.
+/// Request for a recurring subscription payment link.
 class SubscriptionRequest extends Equatable {
-  /// Payment amount per cycle in SDG (minimum 1,000).
-  final double amount;
+  /// The smallest amount per cycle, in SDG, the gateway accepts.
+  static const num minimumAmount = 1000;
 
-  /// Unique subscription identifier on the merchant's side.
+  /// Amount to charge each cycle, in SDG: a finite number of at least
+  /// [minimumAmount].
+  final num amount;
+
+  /// Your unique ID for this subscription. The gateway accepts each reference
+  /// once.
   final String clientReferenceId;
 
-  /// Customer-facing payment description.
+  /// Description shown to the customer on the checkout page.
   final String? description;
 
-  /// URL to redirect to after successful payment.
+  /// Absolute http(s) URL the checkout redirects to after a successful
+  /// payment.
   final String? paymentSuccessfulRedirectUrl;
 
-  /// URL to redirect to after failed payment.
+  /// Absolute http(s) URL the checkout redirects to after a failed payment.
   final String? paymentFailedRedirectUrl;
 
-  /// Whether the customer pays the gateway commission.
+  /// Whether the customer pays the gateway commission. Defaults to `false`.
   final bool commissionPaidByCustomer;
 
-  /// Recurring billing configuration.
+  /// How often, and how many times, the customer is charged.
   final SubscriptionConfiguration subscriptionConfiguration;
 
+  /// Creates a [SubscriptionRequest].
   const SubscriptionRequest({
     required this.amount,
     required this.clientReferenceId,
@@ -35,23 +43,24 @@ class SubscriptionRequest extends Equatable {
     this.commissionPaidByCustomer = false,
   });
 
-  /// Validates the request fields.
+  /// Checks the fields, including [subscriptionConfiguration].
   ///
-  /// Throws [ArgumentError] if validation fails.
+  /// Throws [ArgumentError] if any field is invalid.
   void validate() {
-    if (amount < 1000) {
-      throw ArgumentError('Amount must be at least 1,000 SDG, got: $amount');
-    }
-    if (clientReferenceId.isEmpty) {
-      throw ArgumentError('clientReferenceId must not be empty');
-    }
+    validateAmount(amount, minimumAmount);
+    validateReference(clientReferenceId);
+    validateRedirectUrl(
+      paymentSuccessfulRedirectUrl,
+      'paymentSuccessfulRedirectUrl',
+    );
+    validateRedirectUrl(paymentFailedRedirectUrl, 'paymentFailedRedirectUrl');
     subscriptionConfiguration.validate();
   }
 
-  /// Converts to JSON map for API submission.
+  /// The JSON body sent to the gateway.
   Map<String, dynamic> toJson() {
     return {
-      'amount': amount,
+      'amount': amountToJson(amount),
       'clientReferenceId': clientReferenceId,
       if (description != null) 'description': description,
       if (paymentSuccessfulRedirectUrl != null)

@@ -55,6 +55,20 @@ void main() {
       expect(response.paymentUrl, isNotEmpty);
     });
 
+    test('fromJson converts numeric fields to strings', () {
+      final response = PaymentResponse.fromJson({'responseCode': 0});
+
+      expect(response.responseCode, '0');
+      expect(response.isSuccess, isTrue);
+    });
+
+    test('fromJson throws InvalidResponseException for unusable types', () {
+      expect(
+        () => PaymentResponse.fromJson({'paymentUrl': <String>[]}),
+        throwsA(isA<InvalidResponseException>()),
+      );
+    });
+
     test('equality works correctly', () {
       final json = {
         'responseCode': '0',
@@ -82,8 +96,84 @@ void main() {
       expect(PaymentStatus.fromString('successful'), PaymentStatus.successful);
     });
 
-    test('fromString throws on unknown status', () {
-      expect(() => PaymentStatus.fromString('PENDING'), throwsArgumentError);
+    test('fromString maps unknown values to unknown', () {
+      expect(PaymentStatus.fromString('PENDING'), PaymentStatus.unknown);
+      expect(PaymentStatus.fromString(''), PaymentStatus.unknown);
+    });
+
+    test('fromString parses every known status', () {
+      expect(PaymentStatus.fromString('REVOKED'), PaymentStatus.revoked);
+      expect(PaymentStatus.fromString(' expired '), PaymentStatus.expired);
+    });
+  });
+
+  group('PaymentStatusResponse', () {
+    test('keeps the raw status and parses numeric strings', () {
+      final response = PaymentStatusResponse.fromJson({
+        'status': 'ON_HOLD',
+        'amount': '2500.5',
+      });
+
+      expect(response.status, PaymentStatus.unknown);
+      expect(response.rawStatus, 'ON_HOLD');
+      expect(response.amount, 2500.5);
+      expect(response.clientReferenceId, '');
+    });
+
+    test('requires a status', () {
+      expect(
+        () => PaymentStatusResponse.fromJson({'amount': 1}),
+        throwsA(isA<InvalidResponseException>()),
+      );
+    });
+
+    test('rejects a non-numeric amount', () {
+      expect(
+        () => PaymentStatusResponse.fromJson({'status': 'FAILED', 'amount': 'a'}),
+        throwsA(isA<InvalidResponseException>()),
+      );
+    });
+  });
+
+  group('WebhookPayload', () {
+    final valid = {
+      'clientReferenceId': 'order-1',
+      'paymentReferenceId': 'yp-1',
+      'status': 'SUCCESSFUL',
+      'timestamp': 1719057920000,
+    };
+
+    test('parses a valid body', () {
+      final payload = WebhookPayload.fromJson(valid);
+
+      expect(payload.isSuccessful, isTrue);
+      expect(payload.timestamp, 1719057920000);
+      expect(payload.rawStatus, 'SUCCESSFUL');
+    });
+
+    test('accepts a numeric-string timestamp', () {
+      final payload = WebhookPayload.fromJson({
+        ...valid,
+        'timestamp': '1719057920000',
+      });
+
+      expect(payload.timestamp, 1719057920000);
+    });
+
+    for (final key in ['clientReferenceId', 'paymentReferenceId', 'status', 'timestamp']) {
+      test('requires $key', () {
+        expect(
+          () => WebhookPayload.fromJson({...valid}..remove(key)),
+          throwsA(isA<InvalidResponseException>()),
+        );
+      });
+    }
+
+    test('rejects a fractional timestamp', () {
+      expect(
+        () => WebhookPayload.fromJson({...valid, 'timestamp': 1.5}),
+        throwsA(isA<InvalidResponseException>()),
+      );
     });
   });
 }

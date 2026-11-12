@@ -1,147 +1,250 @@
 import 'package:dio/dio.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:yalla_pay_sudan_core/yalla_pay_sudan_core.dart';
 
-class MockDio extends Mock implements Dio {}
+import '../support/fake_http.dart';
 
 void main() {
-  late MockDio mockDio;
+  late FakeAdapter adapter;
   late YallaPayClient client;
 
-  final successResponse = {
-    'responseCode': '0',
-    'responseMessage': 'Success',
-    'currentDate': '2025-06-22',
-    'currentTime': '13:25:20',
-    'paymentUrl': 'https://gateway.yallapaysudan.com/checkout/web/test-id',
-  };
+  YallaPayClient clientWith(YallaPayConfig config) =>
+      YallaPayClient.withDio(config, fakeDio(adapter));
 
   setUp(() {
-    mockDio = MockDio();
-    client = YallaPayClient.withDio(
-      const YallaPayConfig(apiKey: 'test-token', webhookSecret: 'test-secret'),
-      mockDio,
+    adapter = FakeAdapter((_) => jsonResponse(successBody));
+    client = clientWith(
+      const YallaPayConfig(
+        apiKey: 'test-token',
+        webhookSecret: 'test-secret',
+        retryDelay: Duration.zero,
+      ),
     );
   });
 
-  group('YallaPayClient', () {
-    group('createPayment', () {
-      test('validates request before API call', () async {
-        const request = PaymentRequest(
-          amount: 500,
-          clientReferenceId: 'order-123',
-        );
+  test('rejects an empty API key', () {
+    expect(
+      () => clientWith(const YallaPayConfig(apiKey: '')),
+      throwsArgumentError,
+    );
+  });
 
-        expect(() => client.createPayment(request), throwsArgumentError);
+  group('createPayment', () {
+    test('validates before sending anything', () {
+      const request = PaymentRequest(amount: 500, clientReferenceId: 'o-1');
 
-        verifyNever(
-          () => mockDio.post<Map<String, dynamic>>(
-            any(),
-            data: any(named: 'data'),
-          ),
-        );
-      });
-
-      test('returns PaymentResponse on success', () async {
-        when(
-          () => mockDio.post<Map<String, dynamic>>(
-            ApiConstants.generatePaymentLink,
-            data: any(named: 'data'),
-          ),
-        ).thenAnswer(
-          (_) async => Response(
-            data: successResponse,
-            statusCode: 200,
-            requestOptions: RequestOptions(
-              path: ApiConstants.generatePaymentLink,
-            ),
-          ),
-        );
-
-        const request = PaymentRequest(
-          amount: 5000,
-          clientReferenceId: 'order-123',
-        );
-
-        final result = await client.createPayment(request);
-
-        expect(result.isSuccess, true);
-        expect(result.paymentUrl, contains('test-id'));
-      });
+      expect(() => client.createPayment(request), throwsArgumentError);
+      expect(adapter.requests, isEmpty);
     });
 
-    group('createSubscription', () {
-      test('validates request before API call', () async {
-        const request = SubscriptionRequest(
+    test('attaches the redirect URLs to the response', () async {
+      final result = await client.createPayment(
+        const PaymentRequest(
           amount: 5000,
-          clientReferenceId: '',
-          subscriptionConfiguration: SubscriptionConfiguration(
-            interval: SubscriptionInterval.month,
-            intervalCycle: 1,
-          ),
-        );
+          clientReferenceId: 'order-123',
+          paymentSuccessfulRedirectUrl: 'https://shop.example/paid',
+          paymentFailedRedirectUrl: 'https://shop.example/failed',
+        ),
+      );
 
-        expect(() => client.createSubscription(request), throwsArgumentError);
-      });
+      expect(result.paymentUrl, contains('test-id'));
+      expect(result.successRedirectUrl, 'https://shop.example/paid');
+      expect(result.failedRedirectUrl, 'https://shop.example/failed');
+    });
 
-      test('returns PaymentResponse on success', () async {
-        when(
-          () => mockDio.post<Map<String, dynamic>>(
-            ApiConstants.generateSubscriptionPaymentLink,
-            data: any(named: 'data'),
-          ),
-        ).thenAnswer(
-          (_) async => Response(
-            data: successResponse,
-            statusCode: 200,
-            requestOptions: RequestOptions(
-              path: ApiConstants.generateSubscriptionPaymentLink,
-            ),
-          ),
-        );
+    test('is never retried, even after a timeout', () async {
+      adapter.handler = (options) => throw DioException(
+        requestOptions: options,
+        type: DioExceptionType.receiveTimeout,
+      );
 
-        const request = SubscriptionRequest(
+      await expectLater(
+        client.createPayment(
+          const PaymentRequest(amount: 5000, clientReferenceId: 'order-123'),
+        ),
+        throwsA(isA<NetworkException>()),
+      );
+      expect(adapter.requests, hasLength(1));
+    });
+  });
+
+  group('createSubscription', () {
+    test('validates before sending anything', () {
+      const request = SubscriptionRequest(
+        amount: 5000,
+        clientReferenceId: ' ',
+        subscriptionConfiguration: SubscriptionConfiguration(
+          interval: SubscriptionInterval.month,
+          intervalCycle: 1,
+        ),
+      );
+
+      expect(() => client.createSubscription(request), throwsArgumentError);
+      expect(adapter.requests, isEmpty);
+    });
+
+    test('returns the response', () async {
+      final result = await client.createSubscription(
+        const SubscriptionRequest(
           amount: 5000,
           clientReferenceId: 'sub-123',
           subscriptionConfiguration: SubscriptionConfiguration(
             interval: SubscriptionInterval.month,
             intervalCycle: 1,
           ),
-        );
+        ),
+      );
 
-        final result = await client.createSubscription(request);
+      expect(result.isSuccess, isTrue);
+    });
+  });
 
-        expect(result.isSuccess, true);
+  group('getPaymentStatus', () {
+    test('sends the date as YYYY-MM-DD', () async {
+      adapter.handler = (_) => jsonResponse({'status': 'SUCCESSFUL'});
+
+      await client.getPaymentStatus(
+        clientReferenceId: 'order-123',
+        transactionDate: DateTime(2025, 3, 7, 23, 59),
+      );
+
+      expect(adapter.requests.single.data, {
+        'clientReferenceId': 'order-123',
+        'transactionDate': '2025-03-07',
       });
     });
 
-    group('verifyWebhook', () {
-      test('throws StateError when no webhook secret configured', () {
-        final clientNoSecret = YallaPayClient.withDio(
-          const YallaPayConfig(apiKey: 'test-token'),
-          mockDio,
-        );
+    test('retries network errors, then succeeds', () async {
+      var calls = 0;
+      adapter.handler = (options) {
+        calls++;
+        if (calls < 3) {
+          throw DioException.connectionError(
+            requestOptions: options,
+            reason: 'offline',
+          );
+        }
+        return jsonResponse({'status': 'SUCCESSFUL'});
+      };
 
-        expect(
-          () => clientNoSecret.verifyWebhook(
-            signature: 'sig',
-            timestamp: '123',
-            rawBody: '{}',
-          ),
-          throwsStateError,
-        );
-      });
+      final result = await client.getPaymentStatus(
+        clientReferenceId: 'order-123',
+        transactionDate: DateTime(2025, 3, 7),
+      );
+
+      expect(result.isSuccessful, isTrue);
+      expect(calls, 3);
     });
 
-    group('dispose', () {
-      test('closes the Dio client', () {
-        when(() => mockDio.close()).thenReturn(null);
+    test('gives up after statusRetries', () async {
+      adapter.handler = (options) => throw DioException(
+        requestOptions: options,
+        type: DioExceptionType.connectionTimeout,
+      );
 
-        client.dispose();
-
-        verify(() => mockDio.close()).called(1);
-      });
+      await expectLater(
+        client.getPaymentStatus(
+          clientReferenceId: 'order-123',
+          transactionDate: DateTime(2025, 3, 7),
+        ),
+        throwsA(isA<NetworkException>()),
+      );
+      expect(adapter.requests, hasLength(3)); // 1 try + 2 retries
     });
+
+    test('does not retry gateway errors', () async {
+      adapter.handler = (_) =>
+          jsonResponse({'responseCode': '3', 'responseMessage': 'Not found'});
+
+      await expectLater(
+        client.getPaymentStatus(
+          clientReferenceId: 'order-123',
+          transactionDate: DateTime(2025, 3, 7),
+        ),
+        throwsA(isA<PaymentException>()),
+      );
+      expect(adapter.requests, hasLength(1));
+    });
+
+    test('rejects a blank reference', () {
+      expect(
+        () => client.getPaymentStatus(
+          clientReferenceId: '',
+          transactionDate: DateTime(2025),
+        ),
+        throwsArgumentError,
+      );
+    });
+  });
+
+  group('formatTransactionDate', () {
+    test('pads month, day and year', () {
+      expect(YallaPayClient.formatTransactionDate(DateTime(2026, 1, 2)), '2026-01-02');
+      expect(YallaPayClient.formatTransactionDate(DateTime(999, 12, 31)), '0999-12-31');
+    });
+  });
+
+  group('verifyWebhook', () {
+    test('throws StateError without a webhook secret', () {
+      final noSecret = clientWith(const YallaPayConfig(apiKey: 'test-token'));
+
+      expect(
+        () => noSecret.verifyWebhook(
+          signature: 'sig',
+          timestamp: '123',
+          rawBody: '{}',
+        ),
+        throwsStateError,
+      );
+      expect(
+        () => noSecret.verifyWebhookBytes(
+          signature: 'sig',
+          timestamp: '123',
+          body: const [],
+        ),
+        throwsStateError,
+      );
+    });
+
+    test('an empty webhook secret is rejected', () {
+      expect(
+        () => clientWith(const YallaPayConfig(apiKey: 'k', webhookSecret: '')),
+        throwsArgumentError,
+      );
+    });
+  });
+
+  group('config', () {
+    test('sandbox and live select the base URL', () {
+      expect(
+        const YallaPayConfig.sandbox(apiKey: 'k').baseUrl,
+        ApiConstants.sandboxBaseUrl,
+      );
+      expect(
+        const YallaPayConfig.live(apiKey: 'k').baseUrl,
+        ApiConstants.defaultBaseUrl,
+      );
+    });
+
+    test('logging is off by default', () {
+      expect(const YallaPayConfig(apiKey: 'k').enableLogging, isFalse);
+      expect(const YallaPayConfig.live(apiKey: 'k').enableLogging, isFalse);
+      expect(const YallaPayConfig.sandbox(apiKey: 'k').enableLogging, isFalse);
+    });
+
+    test('toString redacts secrets', () {
+      final text = const YallaPayConfig(
+        apiKey: 'sk_live_secret',
+        webhookSecret: 'whsec_secret',
+      ).toString();
+
+      expect(text, isNot(contains('sk_live_secret')));
+      expect(text, isNot(contains('whsec_secret')));
+    });
+  });
+
+  test('dispose closes the HTTP client', () {
+    client.dispose();
+    expect(adapter.closed, isTrue);
   });
 }
