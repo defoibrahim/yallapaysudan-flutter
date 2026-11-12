@@ -2,30 +2,52 @@ import 'package:equatable/equatable.dart';
 
 import '../api/api_constants.dart';
 
-/// Configuration for the YallaPaySudan client.
+/// Configuration for [YallaPayClient].
+///
+/// **Server-side only.** [apiKey] and [webhookSecret] are secrets. Read them
+/// from your server's environment or secret store; never compile them into a
+/// mobile or web app, where anyone can extract them.
 class YallaPayConfig extends Equatable {
-  /// The API authorization token from the merchant dashboard.
+  /// The merchant auth token from the YallaPaySudan dashboard
+  /// (`test_sk_...` for the sandbox, `sk_...` for production).
   final String apiKey;
 
-  /// Base URL for the YallaPaySudan API.
+  /// Base URL of the gateway API. See [ApiConstants].
   final String baseUrl;
 
-  /// Webhook secret key for signature verification.
-  /// Required only if using [YallaPayClient.verifyWebhook].
+  /// The webhook secret from the dashboard. Needed only for
+  /// [YallaPayClient.verifyWebhook].
   final String? webhookSecret;
 
-  /// Maximum allowed age for webhook timestamps.
+  /// How far a webhook timestamp may be from the current time, in either
+  /// direction, before the webhook is rejected. Defaults to 5 minutes.
   final Duration webhookTimestampTolerance;
 
-  /// Connection timeout for HTTP requests.
+  /// Timeout for opening the connection. Defaults to 30 seconds.
   final Duration connectTimeout;
 
-  /// Response receive timeout for HTTP requests.
+  /// Timeout for receiving the response. Defaults to 30 seconds.
   final Duration receiveTimeout;
 
-  /// Whether to enable debug logging of requests and responses.
+  /// How many times [YallaPayClient.getPaymentStatus] retries after a
+  /// network error. Status checks are read-only, so retrying is safe.
+  /// Payment creation is never retried automatically. Defaults to 2.
+  final int statusRetries;
+
+  /// Delay before the first status retry; doubles on each further retry.
+  /// Defaults to 500 milliseconds.
+  final Duration retryDelay;
+
+  /// Whether to log requests and responses with `dart:developer`. Defaults to
+  /// `false`; enable only while developing.
+  ///
+  /// Headers are never logged, so the auth token is not either. Request
+  /// bodies and error response bodies are logged; they contain amounts,
+  /// references and redirect URLs.
   final bool enableLogging;
 
+  /// Creates a configuration. Prefer [YallaPayConfig.sandbox] or
+  /// [YallaPayConfig.live].
   const YallaPayConfig({
     required this.apiKey,
     this.baseUrl = ApiConstants.defaultBaseUrl,
@@ -33,16 +55,20 @@ class YallaPayConfig extends Equatable {
     this.webhookTimestampTolerance = const Duration(minutes: 5),
     this.connectTimeout = const Duration(seconds: 30),
     this.receiveTimeout = const Duration(seconds: 30),
+    this.statusRetries = 2,
+    this.retryDelay = const Duration(milliseconds: 500),
     this.enableLogging = false,
   });
 
-  /// Creates a config for the **sandbox** (test) environment.
+  /// Configuration for the **sandbox** (test) environment.
   const YallaPayConfig.sandbox({
     required String apiKey,
     String? webhookSecret,
     Duration webhookTimestampTolerance = const Duration(minutes: 5),
     Duration connectTimeout = const Duration(seconds: 30),
     Duration receiveTimeout = const Duration(seconds: 30),
+    int statusRetries = 2,
+    Duration retryDelay = const Duration(milliseconds: 500),
     bool enableLogging = false,
   }) : this(
          apiKey: apiKey,
@@ -51,16 +77,20 @@ class YallaPayConfig extends Equatable {
          webhookTimestampTolerance: webhookTimestampTolerance,
          connectTimeout: connectTimeout,
          receiveTimeout: receiveTimeout,
+         statusRetries: statusRetries,
+         retryDelay: retryDelay,
          enableLogging: enableLogging,
        );
 
-  /// Creates a config for the **production** (live) environment.
+  /// Configuration for the **production** (live) environment.
   const YallaPayConfig.live({
     required String apiKey,
     String? webhookSecret,
     Duration webhookTimestampTolerance = const Duration(minutes: 5),
     Duration connectTimeout = const Duration(seconds: 30),
     Duration receiveTimeout = const Duration(seconds: 30),
+    int statusRetries = 2,
+    Duration retryDelay = const Duration(milliseconds: 500),
     bool enableLogging = false,
   }) : this(
          apiKey: apiKey,
@@ -68,6 +98,8 @@ class YallaPayConfig extends Equatable {
          webhookTimestampTolerance: webhookTimestampTolerance,
          connectTimeout: connectTimeout,
          receiveTimeout: receiveTimeout,
+         statusRetries: statusRetries,
+         retryDelay: retryDelay,
          enableLogging: enableLogging,
        );
 
@@ -79,6 +111,14 @@ class YallaPayConfig extends Equatable {
     webhookTimestampTolerance,
     connectTimeout,
     receiveTimeout,
+    statusRetries,
+    retryDelay,
     enableLogging,
   ];
+
+  /// Redacts the secrets, so logging a config never leaks them.
+  @override
+  String toString() =>
+      'YallaPayConfig(baseUrl: $baseUrl, apiKey: <redacted>, '
+      'webhookSecret: ${webhookSecret == null ? 'null' : '<redacted>'})';
 }

@@ -13,6 +13,9 @@ class SubscriptionConfiguration extends Equatable {
   /// Total number of billing cycles. Omit (null) for indefinite.
   final int? totalCycles;
 
+  /// Creates a [SubscriptionConfiguration]. For example, every month for a
+  /// year: `interval: SubscriptionInterval.month, intervalCycle: 1,
+  /// totalCycles: 12`.
   const SubscriptionConfiguration({
     required this.interval,
     required this.intervalCycle,
@@ -24,18 +27,22 @@ class SubscriptionConfiguration extends Equatable {
   /// Throws [ArgumentError] if validation fails.
   void validate() {
     if (intervalCycle < 1) {
-      throw ArgumentError(
-        'intervalCycle must be at least 1, got: $intervalCycle',
+      throw ArgumentError.value(
+        intervalCycle,
+        'intervalCycle',
+        'Must be at least 1',
       );
     }
     if (totalCycles != null && totalCycles! < 1) {
-      throw ArgumentError(
-        'totalCycles must be at least 1 if specified, got: $totalCycles',
+      throw ArgumentError.value(
+        totalCycles,
+        'totalCycles',
+        'Must be at least 1 when set',
       );
     }
   }
 
-  /// Converts to JSON map for API submission.
+  /// The JSON object sent to the gateway.
   Map<String, dynamic> toJson() {
     return {
       'interval': interval.toApiValue(),

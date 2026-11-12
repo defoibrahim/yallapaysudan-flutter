@@ -112,6 +112,8 @@ class _PaymentPageState extends State<PaymentPage> {
         _showSnackBar('$label revoked.', type: _SnackType.error);
       case PaymentStatus.expired:
         _showSnackBar('$label expired.', type: _SnackType.error);
+      case PaymentStatus.unknown:
+        _showSnackBar('$label status unknown.', type: _SnackType.error);
       case null:
         _showSnackBar('Checkout dismissed.');
     }

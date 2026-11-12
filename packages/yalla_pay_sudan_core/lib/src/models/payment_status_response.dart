@@ -1,52 +1,64 @@
 import 'package:equatable/equatable.dart';
 
+import '../internal/json.dart';
 import 'enums.dart';
 
-/// Response from the payment status check endpoint.
+/// The gateway's answer to a payment status check.
 class PaymentStatusResponse extends Equatable {
-  /// The merchant's unique transaction ID.
+  /// Your reference ID for the payment.
   final String clientReferenceId;
 
-  /// YallaPaySudan's internal transaction ID.
+  /// The gateway's transaction ID.
   final String paymentReferenceId;
 
-  /// Current payment status.
+  /// The payment status. [PaymentStatus.unknown] if the gateway sent a
+  /// status this package does not know; see [rawStatus].
   final PaymentStatus status;
 
-  /// Transaction amount in SDG.
-  final double amount;
+  /// The status exactly as the gateway sent it.
+  final String rawStatus;
 
-  /// Date the payment was processed (YYYY-MM-DD).
+  /// Transaction amount in SDG, or `0` if not sent.
+  final num amount;
+
+  /// Date the payment was processed (YYYY-MM-DD), or empty if not sent.
   final String paymentDate;
 
-  /// Time the payment was processed (HH:MM:SS).
+  /// Time the payment was processed (HH:MM:SS), or empty if not sent.
   final String paymentTime;
 
-  /// The full raw API response.
+  /// The full decoded response body.
   final Map<String, dynamic> raw;
 
+  /// Creates a [PaymentStatusResponse].
   const PaymentStatusResponse({
     required this.clientReferenceId,
     required this.paymentReferenceId,
     required this.status,
+    required this.rawStatus,
     required this.amount,
     required this.paymentDate,
     required this.paymentTime,
     required this.raw,
   });
 
-  /// Whether the payment was successful.
+  /// Whether the payment went through.
   bool get isSuccessful => status == PaymentStatus.successful;
 
-  /// Creates a [PaymentStatusResponse] from the API JSON response.
+  /// Reads a status response. `status` is required.
+  ///
+  /// Throws `InvalidResponseException` if `status` is missing or a field has
+  /// an unusable type.
   factory PaymentStatusResponse.fromJson(Map<String, dynamic> json) {
+    final rawStatus = requireString(json, 'status');
     return PaymentStatusResponse(
-      clientReferenceId: json['clientReferenceId'] as String? ?? '',
-      paymentReferenceId: json['paymentReferenceId'] as String? ?? '',
-      status: PaymentStatus.fromString(json['status'] as String? ?? ''),
-      amount: (json['amount'] as num?)?.toDouble() ?? 0,
-      paymentDate: json['paymentDate'] as String? ?? '',
-      paymentTime: json['paymentTime'] as String? ?? '',
+      clientReferenceId: readString(json, 'clientReferenceId') ?? '',
+      paymentReferenceId: readString(json, 'paymentReferenceId') ?? '',
+      status: PaymentStatus.fromString(rawStatus),
+      rawStatus: rawStatus,
+      amount: readNum(json, 'amount') ?? 0,
+      paymentDate: readString(json, 'paymentDate') ?? '',
+      paymentTime: readString(json, 'paymentTime') ?? '',
       raw: json,
     );
   }
@@ -56,6 +68,7 @@ class PaymentStatusResponse extends Equatable {
     clientReferenceId,
     paymentReferenceId,
     status,
+    rawStatus,
     amount,
     paymentDate,
     paymentTime,

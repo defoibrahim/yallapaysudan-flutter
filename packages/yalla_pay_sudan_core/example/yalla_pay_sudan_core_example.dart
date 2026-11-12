@@ -6,7 +6,8 @@ import 'package:yalla_pay_sudan_core/yalla_pay_sudan_core.dart';
 /// A minimal checkout backend built on `dart:io`.
 ///
 /// * `POST /checkout` creates a sandbox payment link and returns its URL.
-/// * `POST /webhooks/yallapay` verifies the webhook signature.
+/// * `POST /webhooks/yallapay` verifies the webhook signature over the raw
+///   body bytes.
 ///
 /// Secrets come from the environment and never leave the server:
 ///
@@ -17,7 +18,7 @@ import 'package:yalla_pay_sudan_core/yalla_pay_sudan_core.dart';
 Future<void> main() async {
   final client = YallaPayClient(
     YallaPayConfig.sandbox(
-      apiKey: Platform.environment['YALLAPAY_API_KEY'] ?? '',
+      apiKey: Platform.environment['YALLAPAY_API_KEY'] ?? 'missing-key',
       webhookSecret: Platform.environment['YALLAPAY_WEBHOOK_SECRET'],
     ),
   );
@@ -26,27 +27,36 @@ Future<void> main() async {
   stdout.writeln('Listening on http://localhost:8080');
 
   await for (final request in server) {
-    final body = await utf8.decodeStream(request);
+    // Keep the exact bytes: the webhook signature covers them.
+    final body = await request.fold<List<int>>(
+      [],
+      (all, chunk) => all..addAll(chunk),
+    );
     try {
       if (request.method == 'POST' && request.uri.path == '/checkout') {
+        final orderId = 'order-${DateTime.now().millisecondsSinceEpoch}';
         final response = await client.createPayment(
           PaymentRequest(
             amount: 5000,
-            clientReferenceId: 'order-${DateTime.now().millisecondsSinceEpoch}',
+            clientReferenceId: orderId,
             paymentSuccessfulRedirectUrl: 'https://example.com/payment/success',
             paymentFailedRedirectUrl: 'https://example.com/payment/failed',
           ),
         );
         _json(request.response, HttpStatus.ok, {
+          'orderId': orderId,
           'paymentUrl': response.paymentUrl,
+          'successUrl': response.successRedirectUrl,
+          'failedUrl': response.failedRedirectUrl,
         });
       } else if (request.method == 'POST' &&
           request.uri.path == '/webhooks/yallapay') {
-        final payload = client.verifyWebhook(
+        final payload = client.verifyWebhookBytes(
           signature: request.headers.value('YallaPay-Signature') ?? '',
           timestamp: request.headers.value('YallaPay-TimeStamp') ?? '',
-          rawBody: body,
+          body: body,
         );
+        // Deliveries can repeat: update the order idempotently.
         stdout.writeln('${payload.clientReferenceId}: ${payload.status}');
         _json(request.response, HttpStatus.ok, {'received': true});
       } else {
