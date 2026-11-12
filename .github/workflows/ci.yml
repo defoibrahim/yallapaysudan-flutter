@@ -42,7 +42,7 @@ jobs:
           # After `pub get`, so the formatter uses the package's language version.
           if ! dart format --set-exit-if-changed . >/dev/null; then
             echo "::error::Files are not formatted. Apply this patch or run 'dart format .' in ${{ env.CORE }}:"
-            git diff
+            git diff -- '*.dart'
             exit 1
           fi
       - name: Analyze
@@ -90,7 +90,7 @@ jobs:
           # After `pub get`, so the formatter uses the package's language version.
           if ! dart format --set-exit-if-changed . >/dev/null; then
             echo "::error::Files are not formatted. Apply this patch or run 'dart format .' in ${{ env.FLUTTER_PKG }}:"
-            git diff
+            git diff -- '*.dart'
             exit 1
           fi
       - name: Analyze (package and example)

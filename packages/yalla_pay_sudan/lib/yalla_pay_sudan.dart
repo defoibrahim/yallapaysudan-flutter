@@ -1,12 +1,13 @@
 /// Flutter checkout for the YallaPaySudan payment gateway.
 ///
-/// Opens a YallaPaySudan payment link inside your app with
-/// [YallaPayCheckoutWebView] and returns a [CheckoutResult].
+/// Opens a payment link from your backend inside the app with
+/// [YallaPayCheckoutWebView] and reports how the checkout ended as a
+/// [CheckoutResult].
 ///
-/// This package deliberately contains no API client: the merchant API key and
-/// webhook secret must stay on your server. Create payment links there with the
-/// pure Dart `yalla_pay_sudan_core` package and send only the checkout URL to
-/// the app.
+/// This package deliberately has no API client. Creating payment links needs
+/// the merchant auth token, which must stay on your server: create them there
+/// with the pure Dart `yalla_pay_sudan_core` package and send only the
+/// checkout URL and redirect URLs to the app.
 library;
 
 export 'package:yalla_pay_sudan_core/yalla_pay_sudan_core.dart'

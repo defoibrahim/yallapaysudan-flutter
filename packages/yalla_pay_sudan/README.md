@@ -24,8 +24,8 @@ Get the checkout URL from your backend, then:
 final result = await YallaPayCheckoutWebView.show(
   context,
   paymentUrl: paymentUrl,
-  successUrlPattern: 'https://example.com/payment/success',
-  failedUrlPattern: 'https://example.com/payment/failed',
+  successUrl: 'https://example.com/payment/success',
+  failedUrl: 'https://example.com/payment/failed',
 );
 ```
 
