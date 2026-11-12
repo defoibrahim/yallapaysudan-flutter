@@ -29,6 +29,13 @@ android {
         versionName = flutter.versionName
     }
 
+    lint {
+        // Android Lint crashes (NoSuchMethodError in its JavaDoc parser) while
+        // analysing webview_flutter_android with AGP 9.3.1. That is a tooling
+        // bug, not a finding, so don't let it block release builds.
+        checkReleaseBuilds = false
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
