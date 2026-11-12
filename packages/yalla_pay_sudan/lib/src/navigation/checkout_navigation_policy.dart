@@ -83,7 +83,9 @@ class CheckoutNavigationPolicy {
   /// Whether [host] is one of [allowedHosts] or a subdomain of one.
   bool isAllowedHost(String host) {
     final h = host.toLowerCase();
-    return allowedHosts.any((allowed) => h == allowed || h.endsWith('.$allowed'));
+    return allowedHosts.any(
+      (allowed) => h == allowed || h.endsWith('.$allowed'),
+    );
   }
 
   /// Whether [uri] is the redirect URL [expected]: same scheme, host, port

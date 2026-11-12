@@ -153,9 +153,7 @@ void main() {
       expect(results, isEmpty);
     });
 
-    testWidgets('redirects seen in onPageStarted are detected', (
-      tester,
-    ) async {
+    testWidgets('redirects seen in onPageStarted are detected', (tester) async {
       await pumpCheckout(tester);
 
       platform.delegate.onPageStarted!(failedUrl);
