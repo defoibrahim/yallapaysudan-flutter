@@ -1,0 +1,27 @@
+name: yalla_pay_sudan
+description: "Flutter checkout for the YallaPaySudan payment gateway: open a payment link from your backend in an in-app WebView and get a typed result back."
+version: 2.0.0
+repository: https://github.com/defoibrahim/yallapaysudan-flutter/tree/main/packages/yalla_pay_sudan
+issue_tracker: https://github.com/defoibrahim/yallapaysudan-flutter/issues
+topics:
+  - payment
+  - payment-gateway
+  - sudan
+  - webview
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  equatable: ">=2.0.7 <4.0.0"
+  material_ui: ^1.0.0
+  webview_flutter: ^4.10.0
+  yalla_pay_sudan_core: ^2.0.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter

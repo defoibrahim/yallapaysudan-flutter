@@ -17,65 +17,136 @@ defaults:
   run:
     shell: bash
 
+env:
+  CORE: packages/yalla_pay_sudan_core
+  FLUTTER_PKG: packages/yalla_pay_sudan
+
 jobs:
-  check:
-    name: Analyze, format and test
+  core:
+    name: core (pure Dart, no Flutter SDK)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
+      # Only the Dart SDK is installed here: if core ever depends on Flutter,
+      # dependency resolution fails and so does this job.
+      - uses: dart-lang/setup-dart@v1
+      - name: Check that flutter is not available
+        run: "! command -v flutter"
+      - name: Resolve
+        working-directory: ${{ env.CORE }}
+        run: dart pub get
+      - name: Format
+        working-directory: ${{ env.CORE }}
         run: |
-          # The example app reads its sandbox key from a git-ignored .env asset.
-          cp example/.env.example example/.env
-          flutter pub get
-          (cd example && flutter pub get)
-
-      - name: Check formatting
-        run: |
+          # After `pub get`, so the formatter uses the package's language version.
           if ! dart format --set-exit-if-changed . >/dev/null; then
-            echo "::error::Files are not formatted. Apply this patch or run 'dart format .':"
+            echo "::error::Files are not formatted. Apply this patch or run 'dart format .' in ${{ env.CORE }}:"
             git diff
             exit 1
           fi
-
       - name: Analyze
-        run: flutter analyze --fatal-infos
-
+        working-directory: ${{ env.CORE }}
+        run: dart analyze --fatal-infos
       - name: Test with coverage
-        run: flutter test --coverage
-
-      - name: Coverage summary
+        working-directory: ${{ env.CORE }}
         run: |
-          awk -F: '/^LF:/{lf+=$2} /^LH:/{lh+=$2} END{printf "Line coverage: %d/%d (%.1f%%)\n", lh, lf, 100*lh/lf}' coverage/lcov.info | tee -a "$GITHUB_STEP_SUMMARY"
-
+          dart pub global activate coverage
+          dart test --coverage=coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage \
+            --out=coverage/lcov.info --report-on=lib --package=.
+      - name: Coverage summary
+        working-directory: ${{ env.CORE }}
+        run: |
+          awk -F: '/^LF:/{lf+=$2} /^LH:/{lh+=$2} END{printf "core line coverage: %d/%d (%.1f%%)\n", lh, lf, 100*lh/lf}' coverage/lcov.info | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v7
         with:
-          name: coverage
-          path: coverage/lcov.info
+          name: coverage-core
+          path: ${{ env.CORE }}/coverage/lcov.info
 
-  pana:
-    name: pana (must score 160/160)
+  flutter:
+    name: Flutter package and example
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
-      - name: Install pana
-        run: dart pub global activate pana
-
-      - name: Run pana
+      - name: Use the local core package
+        run: bash tool/dev_overrides.sh
+      - name: Install dependencies
         run: |
-          dart pub global run pana --flutter-sdk "$FLUTTER_ROOT" --exit-code-threshold 0 . | tee pana.md
-          grep -E '^## |Points:' pana.md >> "$GITHUB_STEP_SUMMARY" || true
+          # The example app reads its sandbox key from a git-ignored .env asset.
+          cp "$FLUTTER_PKG/example/.env.example" "$FLUTTER_PKG/example/.env"
+          (cd "$FLUTTER_PKG" && flutter pub get)
+          (cd "$FLUTTER_PKG/example" && flutter pub get)
+      - name: Format
+        working-directory: ${{ env.FLUTTER_PKG }}
+        run: |
+          # After `pub get`, so the formatter uses the package's language version.
+          if ! dart format --set-exit-if-changed . >/dev/null; then
+            echo "::error::Files are not formatted. Apply this patch or run 'dart format .' in ${{ env.FLUTTER_PKG }}:"
+            git diff
+            exit 1
+          fi
+      - name: Analyze (package and example)
+        working-directory: ${{ env.FLUTTER_PKG }}
+        run: flutter analyze --fatal-infos
+      - name: Test with coverage
+        working-directory: ${{ env.FLUTTER_PKG }}
+        run: flutter test --coverage
+      - name: Coverage summary
+        working-directory: ${{ env.FLUTTER_PKG }}
+        run: |
+          awk -F: '/^LF:/{lf+=$2} /^LH:/{lh+=$2} END{printf "flutter line coverage: %d/%d (%.1f%%)\n", lh, lf, 100*lh/lf}' coverage/lcov.info | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-flutter
+          path: ${{ env.FLUTTER_PKG }}/coverage/lcov.info
+
+  pana-core:
+    name: pana core (160/160)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - run: git fetch --depth=1 origin main
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub global activate pana
+      - run: tool/ci/pana.sh "$CORE"
+
+  pana-flutter:
+    name: pana Flutter package (160/160)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - run: git fetch --depth=1 origin main
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: dart pub global activate pana
+      # yalla_pay_sudan depends on yalla_pay_sudan_core from pub.dev. Until
+      # that version is published, serve this commit's core package from a
+      # local pub proxy (everything else is forwarded to pub.dev), so pana
+      # scores the package the way pub.dev will once core is released.
+      - name: Start local pub proxy with this commit's core package
+        run: |
+          mkdir -p "$RUNNER_TEMP/proxy"
+          git archive --format=tar.gz -o "$RUNNER_TEMP/proxy/core.tar.gz" "HEAD:$CORE"
+          yq -o=json "$CORE/pubspec.yaml" > "$RUNNER_TEMP/proxy/core.json"
+          nohup python3 tool/ci/local_pub_proxy.py 8787 \
+            "yalla_pay_sudan_core=$RUNNER_TEMP/proxy/core.json:$RUNNER_TEMP/proxy/core.tar.gz" \
+            > "$RUNNER_TEMP/proxy/log.txt" 2>&1 &
+          for _ in $(seq 1 20); do
+            curl -sf http://127.0.0.1:8787/api/packages/yalla_pay_sudan_core >/dev/null && exit 0
+            sleep 0.5
+          done
+          cat "$RUNNER_TEMP/proxy/log.txt"; exit 1
+      - run: tool/ci/pana.sh "$FLUTTER_PKG" --flutter-sdk "$FLUTTER_ROOT" --hosted-url http://127.0.0.1:8787
+      - name: Proxy log
+        if: always()
+        run: cat "$RUNNER_TEMP/proxy/log.txt" || true

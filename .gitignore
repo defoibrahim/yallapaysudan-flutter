@@ -27,9 +27,12 @@ migrate_working_dir/
 **/doc/api/
 .dart_tool/
 .flutter-plugins-dependencies
-/build/
-/coverage/
+build/
+coverage/
 
 # Environment files with secrets
 .env
 !.env.example
+
+# Local path overrides written by tool/dev_overrides.sh
+pubspec_overrides.yaml
